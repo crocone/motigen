@@ -1,0 +1,54 @@
+/* The guide player's look. Override the variables in your project's theme.css; the geometry (a 1920×1080 stage,
+   a 1520×901 window at 200,128 with a 46 px bar) is what the edit's zoom coordinates refer to, so keep it. */
+@font-face { font-family: 'Geist'; font-style: normal; font-display: block; font-weight: 400; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist'; font-style: normal; font-display: block; font-weight: 500; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist'; font-style: normal; font-display: block; font-weight: 600; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist'; font-style: normal; font-display: block; font-weight: 700; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist'; font-style: normal; font-display: block; font-weight: 800; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist'; font-style: normal; font-display: block; font-weight: 900; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-900-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist Mono'; font-style: normal; font-display: block; font-weight: 400; src: url(/_motigen/vendor/geist-mono/files/geist-mono-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist Mono'; font-style: normal; font-display: block; font-weight: 500; src: url(/_motigen/vendor/geist-mono/files/geist-mono-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Geist Mono'; font-style: normal; font-display: block; font-weight: 600; src: url(/_motigen/vendor/geist-mono/files/geist-mono-latin-600-normal.woff2) format('woff2'); }
+
+:root {
+  --paper: #f4f0e8; --paper2: #ece6da; --paper-hi: #faf7f1; --card-hi: #fbf8f2;
+  --ink: #1f1d1a; --muted: #6b665d; --accent: #ee6a4a;
+  --term: #1b1a18; --term-bar: #2a2825; --term-fg: #ebe6dc; --term-dim: #77736b; --term-dots: #4a4741;
+  --win-bar: #efebe4; --win-line: #e0d9cd; --win-dots: #d8d1c5;
+  --font-sans: Geist, system-ui, sans-serif; --font-mono: 'Geist Mono', monospace;
+}
+html, body { margin: 0; background: #000; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: radial-gradient(1400px 900px at 30% 20%, var(--paper-hi), var(--paper) 55%, var(--paper2)); font-family: var(--font-sans); color: var(--ink); }
+#cam { position: absolute; inset: 0; transform-origin: 0 0; }
+.win { position: absolute; left: 200px; top: 128px; width: 1520px; height: 901px; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px rgba(40, 30, 15, .22), 0 6px 18px rgba(40, 30, 15, .12), 0 0 0 1px rgba(40, 30, 15, .10); background: #fff; }
+.bar { height: 46px; display: flex; align-items: center; gap: 14px; padding: 0 18px; box-sizing: border-box; }
+.dots { display: flex; gap: 8px; } .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+#browser .bar { background: var(--win-bar); border-bottom: 1px solid var(--win-line); }
+#browser .dots i { background: var(--win-dots); }
+.url { flex: 0 1 640px; margin: 0 auto; height: 30px; border-radius: 9px; background: #fff; border: 1px solid #e3ddd2; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; color: #3d3a35; }
+.url svg { width: 13px; height: 13px; color: var(--muted); }
+.url b { font-weight: 500; color: var(--ink); } .url span { color: #8a857b; }
+.view { position: absolute; left: 0; top: 46px; width: 1520px; height: 855px; overflow: hidden; }
+.content { position: absolute; left: 0; top: 0; width: 1520px; height: 855px; transform-origin: 0 0; }
+#shot { position: absolute; left: 0; top: 0; width: 1520px; height: 855px; object-fit: cover; object-position: top left; }
+#terminal { background: var(--term); }
+#terminal .bar { background: var(--term-bar); color: #a7a29a; font: 500 15px var(--font-sans); justify-content: center; position: relative; }
+#terminal .bar .dots { position: absolute; left: 18px; } #terminal .dots i { background: var(--term-dots); }
+#xt { position: absolute; left: 30px; top: 24px; right: 30px; bottom: 20px; }
+.xterm .xterm-viewport { background: transparent !important; overflow: hidden !important; }
+#cursor { position: absolute; width: 28px; height: 28px; pointer-events: none; z-index: 5; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)); }
+.ripple { position: absolute; border-radius: 50%; border: 3px solid var(--accent); pointer-events: none; z-index: 4; }
+#chapter { position: absolute; left: 200px; top: 46px; display: flex; align-items: center; gap: 14px; font: 600 26px var(--font-sans); letter-spacing: -.01em; }
+#chapter .n { font: 600 15px var(--font-mono); letter-spacing: .08em; color: #fff; background: var(--ink); border-radius: 999px; padding: 6px 13px; text-transform: uppercase; }
+#chapter .t { color: var(--ink); }
+#brandmark { position: absolute; right: 200px; top: 44px; height: 38px; opacity: .9; }
+#key { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; font: 600 24px var(--font-sans); color: #fff; background: rgba(27, 26, 24, .92); padding: 14px 24px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); z-index: 6; }
+#key kbd { font: 600 20px var(--font-mono); background: #fff; color: var(--ink); border-radius: 8px; padding: 4px 12px; box-shadow: 0 3px 0 #b9b3a8; }
+#note { position: absolute; left: 200px; bottom: 26px; max-width: 1520px; font: 500 22px var(--font-sans); color: var(--muted); z-index: 6; }
+.card { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: radial-gradient(1400px 900px at 50% 30%, var(--card-hi), var(--paper) 60%, var(--paper2)); z-index: 10; }
+.card img { height: 84px; }
+.card h1 { margin: 54px 0 0; font: 800 96px var(--font-sans); letter-spacing: -.045em; line-height: 1; }
+.card p { margin: 26px 0 0; font: 500 32px var(--font-sans); color: var(--muted); }
+.card .mono { font-family: var(--font-mono); font-size: 26px; letter-spacing: .02em; }
+.card .chips { display: flex; gap: 14px; margin-top: 40px; }
+.card .chips span { font: 600 24px var(--font-sans); padding: 10px 20px; border-radius: 999px; border: 1.5px solid #d9d1c3; background: #fffdf8; }

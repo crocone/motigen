@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Demo app</title>
+<style>
+  @font-face { font-family: 'Geist'; font-weight: 500; font-display: block; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-500-normal.woff2) format('woff2'); }
+  @font-face { font-family: 'Geist'; font-weight: 700; font-display: block; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-700-normal.woff2) format('woff2'); }
+  :root { --ink: #1f1d1a; --muted: #6b665d; --accent: #ee6a4a; --line: #e6e0d4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 500 17px/1.5 Geist, system-ui, sans-serif; color: var(--ink); background: #fbfaf7; }
+  header { display: flex; align-items: center; gap: 14px; padding: 18px 48px; border-bottom: 1px solid var(--line); background: #fff; }
+  header b { font-weight: 700; font-size: 20px; } header nav { margin-left: auto; display: flex; gap: 26px; color: var(--muted); }
+  main { max-width: 760px; margin: 72px auto; padding: 0 24px; }
+  h1 { font-size: 44px; line-height: 1.1; letter-spacing: -.03em; margin: 0 0 14px; }
+  p.lead { color: var(--muted); font-size: 20px; margin: 0 0 36px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 28px; box-shadow: 0 6px 24px rgba(40, 30, 15, .06); }
+  button { font: inherit; font-weight: 700; color: #fff; background: var(--ink); border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer; }
+  button:hover { background: #000; }
+  input { font: inherit; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; width: 280px; margin-right: 10px; }
+  input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  #form { display: none; margin-top: 22px; } #form.on { display: block; }
+  #toast { display: none; margin-top: 22px; padding: 14px 18px; border-radius: 10px; background: #e8f6ec; color: #1a6b36; font-weight: 700; } #toast.on { display: block; }
+  section { margin-top: 56px; } section h2 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 10px; } section p { color: var(--muted); margin: 0 0 12px; }
+  footer { margin-top: 120px; padding: 40px 48px; color: var(--muted); border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<header><b>Demo app</b><nav><span>Docs</span><span>Pricing</span><span>Sign in</span></nav></header>
+<main>
+  <h1>Connect in one click.</h1>
+  <p class="lead">A tiny page that stands in for your product while you learn the recorder.</p>
+  <div class="card">
+    <button id="start">Start</button>
+    <div id="form"><input id="name" placeholder="Your name"><button id="go">Connect</button></div>
+    <div id="toast">Connected. Welcome aboard.</div>
+  </div>
+  <section id="more"><h2>What happens next</h2><p>Record a take with <code>motigen record take.mjs</code>, describe the edit in <code>edit.js</code>, then <code>motigen build</code>.</p><p>Every frame of the video is a pure function of time, so the preview scrubs instantly and the render is reproducible.</p></section>
+  <section><h2>Your own site</h2><p>Serve a local instance under its real domain with <code>map: { 'example.com': '127.0.0.1' }</code> in <code>Browser.open</code>; the address bar then shows the real name.</p></section>
+</main>
+<footer>Demo app · served inside the recorder as https://demo.local</footer>
+<script>
+  document.getElementById('start').onclick = () => { document.getElementById('form').classList.add('on'); document.getElementById('name').focus(); };
+  document.getElementById('go').onclick = () => { document.getElementById('toast').classList.add('on'); };
+</script>
+</body>
+</html>

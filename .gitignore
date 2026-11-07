@@ -1,0 +1,9 @@
+node_modules/
+out/
+*.mp4
+*.part*.mp4
+.motigen/
+.DS_Store
+Thumbs.db
+# local working notes of the owner, not part of the published project
+PLAN.md

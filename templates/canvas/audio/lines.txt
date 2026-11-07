@@ -1,0 +1,3 @@
+Video as code. Every frame is a pure function of time.
+Render anywhere, and get the same frames every time.
+motigen.

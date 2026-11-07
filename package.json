@@ -1,0 +1,59 @@
+{
+  "name": "motigen",
+  "version": "0.1.0",
+  "description": "Video as code for developers and their coding agents: a web page draws frame t, headless Chrome renders it to MP4; real terminals and browsers are recorded, narration and the mix come from the same timeline.",
+  "type": "module",
+  "bin": {
+    "motigen": "bin/motigen.js"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./render": "./src/render.js",
+    "./browser": "./src/browser.js",
+    "./serve": "./src/serve.js",
+    "./project": "./src/project.js",
+    "./record": "./src/record/index.js",
+    "./audio": "./src/audio/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "runtime",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "skill",
+    "docs"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/geist-sans": "^5.3.0",
+    "@xterm/xterm": "^5.5.0",
+    "mediabunny": "^1.65.2",
+    "playwright": "^1.63.0"
+  },
+  "keywords": [
+    "video",
+    "render",
+    "headless",
+    "playwright",
+    "ffmpeg",
+    "screencast",
+    "terminal",
+    "canvas",
+    "motion",
+    "narration",
+    "tts"
+  ],
+  "repository": "github:crocone/motigen",
+  "license": "MIT",
+  "optionalDependencies": {
+    "node-pty": "^1.1.0"
+  }
+}

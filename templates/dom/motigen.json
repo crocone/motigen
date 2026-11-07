@@ -1,0 +1,10 @@
+{
+  "page": "film.html",
+  "fps": 30,
+  "size": [1920, 1080],
+  "audio": "audio",
+  "out": "out/{{name}}.mp4",
+  "vo": { "voice": "", "model": "eleven_v4", "seed": 7042 },
+  "mix": { "target": { "lufs": -14, "dbtp": -1 } },
+  "spellings": []
+}

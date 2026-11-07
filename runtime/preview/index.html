@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>motigen preview</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+<header>
+  <b id="name">motigen</b>
+  <span id="dims" class="dim"></span>
+  <select id="fmt" title="format"></select>
+  <span class="grow"></span>
+  <button id="events" title="write audio/events.json">events</button>
+  <button id="render" title="render the video">render</button>
+  <span id="status" class="dim"></span>
+</header>
+<main><div id="frame"><iframe id="film" title="film"></iframe><div id="loading">loading…</div></div></main>
+<footer>
+  <button id="play" title="space">▶</button>
+  <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
+  <span id="tc">0.00 s</span><span id="dur" class="dim"></span>
+  <span id="audio" class="dim" title="audio/mix.wav plays with the film when it exists">no audio</span>
+  <span class="dim keys">← → frame · shift ± 1 s · home end</span>
+</footer>
+<script type="module" src="preview.js"></script>
+</body>
+</html>

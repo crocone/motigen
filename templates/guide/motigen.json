@@ -1,0 +1,11 @@
+{
+  "page": "film.html",
+  "fps": 30,
+  "size": [1920, 1080],
+  "audio": "audio",
+  "out": "out/{{name}}.mp4",
+  "vo": { "voice": "", "model": "eleven_v4", "seed": 7042,
+          "settings": { "stability": 0.6, "similarity_boost": 0.75, "style": 0, "use_speaker_boost": true, "speed": 1.0 } },
+  "mix": { "voiceDb": -3, "clickDb": -14, "keyDb": -27, "enterDb": -18, "bedRmsDb": -36, "duckDb": -9, "target": { "lufs": -14, "dbtp": -1 } },
+  "spellings": [["dot com", ".com"]]
+}

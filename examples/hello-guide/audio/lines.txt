@@ -1,0 +1,4 @@
+Here is the demo app. One click to connect.
+Press Start, type a name, and press Connect.
+Then the terminal: list the files and check the Node version.
+That's it. Change the edit and render again.

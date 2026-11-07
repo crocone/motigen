@@ -1,0 +1,7 @@
+out/
+shots/
+take/
+audio/events.json
+audio/mix.wav
+audio/mix-raw.wav
+audio/vo/resp.json

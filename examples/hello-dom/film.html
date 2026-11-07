@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>hello-dom</title>
+<style>
+  /* The contract: window.__film = { ready, dur, fps, renderAt(t) }. Every value on screen is a pure function of t,
+     so motigen can render any frame in any order. No libraries, no build step: edit, reload, render. */
+  @font-face { font-family: 'Geist'; font-weight: 500; font-display: block; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-500-normal.woff2) format('woff2'); }
+  @font-face { font-family: 'Geist'; font-weight: 800; font-display: block; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-800-normal.woff2) format('woff2'); }
+  @font-face { font-family: 'Geist Mono'; font-weight: 500; font-display: block; src: url(/_motigen/vendor/geist-mono/files/geist-mono-latin-500-normal.woff2) format('woff2'); }
+  :root { --paper: #f6f2ea; --ink: #1f1d1a; --muted: #6b665d; --accent: #ee6a4a; }
+  html, body { margin: 0; background: #000; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: radial-gradient(1400px 900px at 30% 20%, #fbf8f2, var(--paper) 60%, #ebe5d8); font-family: Geist, system-ui, sans-serif; color: var(--ink); }
+  .abs { position: absolute; will-change: transform, opacity; }
+  #title { left: 160px; top: 300px; font-size: 128px; font-weight: 800; letter-spacing: -.045em; line-height: 1; transform-origin: 0 50%; }
+  #sub { left: 164px; top: 470px; font-size: 40px; font-weight: 500; color: var(--muted); }
+  .line { left: 164px; font-size: 34px; font-weight: 500; font-family: 'Geist Mono', monospace; }
+  #bar { left: 160px; top: 440px; height: 6px; width: 0; background: var(--accent); border-radius: 3px; }
+  #dot { width: 220px; height: 220px; border-radius: 50%; background: var(--accent); right: 220px; top: 330px; }
+  #end { inset: 0; display: flex; align-items: center; justify-content: center; font-size: 96px; font-weight: 800; letter-spacing: -.04em; background: var(--ink); color: #fff; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="dot" class="abs"></div>
+  <div id="title" class="abs">hello-dom</div>
+  <div id="bar" class="abs"></div>
+  <div id="sub" class="abs">A page is the film. Every frame is a function of t.</div>
+  <div id="l1" class="abs line" style="top: 620px">$ motigen frames -t 0,2,5</div>
+  <div id="l2" class="abs line" style="top: 680px">$ motigen render</div>
+  <div id="l3" class="abs line" style="top: 740px">$ motigen preview</div>
+  <div id="end" class="abs">motigen</div>
+</div>
+<script>
+  const DUR = 8, FPS = 30;
+  const $ = id => document.getElementById(id);
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const prog = (t, a, b) => clamp((t - a) / (b - a));
+  const out = k => 1 - Math.pow(1 - k, 3);                              // ease-out cubic
+  const back = k => 1 + 2.7 * Math.pow(k - 1, 3) + 1.7 * Math.pow(k - 1, 2); // ease-out back
+  const typed = (s, k) => s.slice(0, Math.round(s.length * k));
+
+  function renderAt(t) {
+    // 0–1 s: the title stamps in; 1–2 s: the bar draws; 2–6 s: three lines are typed; 6.5–8 s: end card
+    const k1 = back(prog(t, 0.2, 0.9));
+    $('title').style.transform = `scale(${0.85 + 0.15 * k1})`; $('title').style.opacity = prog(t, 0.2, 0.5);
+    $('bar').style.width = `${700 * out(prog(t, 1.0, 1.8))}px`;
+    $('sub').style.opacity = prog(t, 1.4, 2.0); $('sub').style.transform = `translateY(${16 * (1 - out(prog(t, 1.4, 2.0)))}px)`;
+    const lines = ['$ motigen frames -t 0,2,5', '$ motigen render', '$ motigen preview'];
+    lines.forEach((s, i) => { const k = prog(t, 2.2 + i * 1.2, 3.0 + i * 1.2); $('l' + (i + 1)).textContent = typed(s, k) + (k > 0 && k < 1 ? '▌' : ''); });
+    // the dot breathes on a fixed clock, so it is the same at every render of the same t
+    const b = 1 + 0.06 * Math.sin(t * Math.PI * 1.5);
+    $('dot').style.transform = `scale(${b * out(prog(t, 0, 0.6))})`;
+    $('end').style.opacity = prog(t, 6.5, 7.0);
+  }
+
+  document.fonts.ready.then(() => {
+    window.__film = { ready: true, dur: DUR, fps: FPS, renderAt };
+    renderAt(+(new URLSearchParams(location.search).get('t') || 0));
+    window.dispatchEvent(new Event('film-ready'));
+  });
+</script>
+</body>
+</html>

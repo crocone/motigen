@@ -1,0 +1,7 @@
+{
+  "page": "film.html",
+  "fps": 30,
+  "size": [1920, 1080],
+  "audio": "audio",
+  "out": "out/hello-dom.mp4"
+}
