@@ -1,5 +1,5 @@
 {
-  "name": "motigen",
+  "name": "motigenjs",
   "version": "0.1.0",
   "description": "Video as code for developers and their coding agents: a web page draws frame t, headless Chrome renders it to MP4; real terminals and browsers are recorded, narration and the mix come from the same timeline.",
   "type": "module",

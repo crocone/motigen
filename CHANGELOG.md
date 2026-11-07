@@ -2,7 +2,8 @@
 
 ## 0.1.0 — 2026-11-07
 
-First release.
+First release. The npm package is `motigenjs` (npm keeps the bare name as too close to an existing package); the
+command is `motigen`.
 
 - The contract (`window.__film`), the headless renderer with parallel workers, stills, the events export, the
   preview server with its player.

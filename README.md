@@ -10,7 +10,7 @@ cues. Everything is a file in git and every step is one command, which is exactl
 make a product video on its own.
 
 ```bash
-npm i -g motigen && npx playwright install chromium     # Node 22+, ffmpeg in PATH
+npm i -g motigenjs && npx playwright install chromium   # Node 22+, ffmpeg in PATH; the command is `motigen`
 motigen init guide my-guide && cd my-guide
 motigen record take.mjs      # a real browser and a real terminal, recorded into take/
 motigen vo                   # narration from audio/lines.txt (ElevenLabs), one file per line
@@ -43,9 +43,12 @@ Node 22 or newer and ffmpeg in your PATH. Playwright downloads its Chromium once
 installed Chrome instead.
 
 ```bash
-npm i -g motigen
+npm i -g motigenjs
 npx playwright install chromium
 ```
+
+The npm package is `motigenjs`; the command it installs is `motigen`. As a project dependency, `npx motigen …`
+works the same way.
 
 The terminal recorder uses `node-pty` (an optional dependency with prebuilt binaries for Windows, macOS and
 Linux). Without it, record in a container: `backend: 'docker'`.
@@ -59,7 +62,7 @@ Linux). Without it, record in a container: `backend: 'docker'`.
 | `motigen frames -t 1,2.5,10` | Stills into `shots/` (`--png`, `--every 5`, `--element '#terminal'` with a transparent background, `--scale 2`). |
 | `motigen render` | The video to `out/<name>.mp4`: `-j N` pages in parallel (default: half the cores, at most 4), `--range 10-20`, `--audio file.wav` or the project's `audio/mix.wav`, `--crf`, `--preset`. |
 | `motigen events` | The page's `events()` into `audio/events.json`: voice cues, clicks, keys, Enter presses, effects. |
-| `motigen record [take.mjs]` | Runs a take script; it imports `{ Term, Browser, sleep }` from `motigen/record`. |
+| `motigen record [take.mjs]` | Runs a take script; it imports `{ Term, Browser, sleep }` from `motigenjs/record`. |
 | `motigen vo [lines.txt]` | Narration: one ElevenLabs call for the whole script, split per line into `audio/vo/` with `vo.json`. `vo split` uses a saved response, `vo import` your own recordings, `vo check` flags breathy or garbled lines. |
 | `motigen mix` | `audio/mix.wav` from `events.json`, `vo/`, `sfx/` and `bed.*`; or the canvas kit's own mix when `"mix": {"engine": "page"}`. |
 | `motigen srt` | Subtitles from the voice cues, with the written forms from `"spellings"`. |

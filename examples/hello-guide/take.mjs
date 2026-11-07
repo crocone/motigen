@@ -3,7 +3,7 @@
 import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Term, Browser, sleep } from 'motigen/record';
+import { Term, Browser, sleep } from 'motigenjs/record';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const take = join(here, 'take');
@@ -28,7 +28,7 @@ await c.stop();
 await b.close();
 
 // 2. The terminal: a shell on this machine through node-pty (bash where there is one). For a clean box, use
-//    { backend: 'docker', container } with freshContainer() from 'motigen/record'.
+//    { backend: 'docker', container } with freshContainer() from 'motigenjs/record'.
 const t = new Term(take, { cwd: here });
 await t.start();
 await t.waitFor('$');

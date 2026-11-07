@@ -59,7 +59,7 @@ function render(c, f) {
     const w = K.measure(c, 'motigen', { kind: 'heavy', size: L.end.size, track: -0.055 });
     stampLine(c, 'motigen', L.end.x - w / 2, L.end.y, 'heavy', L.end.size, age);
     emphasis(c, L.end.x + w / 2 + 24, L.end.y - L.end.size * 0.7, -28, age, 1.3, 9);
-    if (age >= 8) K.text(c, 'npx motigen init canvas my-film', L.cmd.x, L.cmd.y, { kind: 'mono', size: L.cmd.size, weight: 500, color: C.muted, align: 'center', alpha: clamp((age - 8) / 6) });
+    if (age >= 8) K.text(c, 'npx motigenjs init canvas my-film', L.cmd.x, L.cmd.y, { kind: 'mono', size: L.cmd.size, weight: 500, color: C.muted, align: 'center', alpha: clamp((age - 8) / 6) });
   }
   label(c, 'Illustrative example', L.note);
 }

@@ -8,7 +8,7 @@ edit list, with chapters, key badges, notes and full-screen cards. `motigen init
 `take.mjs` is a Node script run by `motigen record take.mjs`. It imports the recorder:
 
 ```js
-import { Term, Browser, sleep, freshContainer, waitFile } from 'motigen/record';
+import { Term, Browser, sleep, freshContainer, waitFile } from 'motigenjs/record';
 ```
 
 ### Browser

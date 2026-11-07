@@ -24,7 +24,7 @@ const USAGE = `motigen ${VERSION} — video as code
   motigen mix                                voice + effects + bed from audio/events.json → audio/mix.wav (−14 LUFS)
   motigen srt [-o out/<name>.srt]            subtitles from the voice cues
   motigen build [--fmt h --fmt v]            events → mix → render → srt, per motigen.json
-  motigen record [take.mjs]                  run a take script (it imports { Term, Browser } from 'motigen/record')
+  motigen record [take.mjs]                  run a take script (it imports { Term, Browser } from 'motigenjs/record')
   motigen skill [dir]                        install the agent skill into ./.claude/skills/motigen (or dir)
   motigen help
 
