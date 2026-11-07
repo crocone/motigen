@@ -61,6 +61,7 @@ Linux). Without it, record in a container: `backend: 'docker'`.
 | `motigen preview [--port 4310] [--open]` | A player over the project: scrub, play with `audio/mix.wav`, switch formats, render and export events from buttons. |
 | `motigen frames -t 1,2.5,10` | Stills into `shots/` (`--png`, `--every 5`, `--element '#terminal'` with a transparent background, `--scale 2`). |
 | `motigen render` | The video to `out/<name>.mp4`: `-j N` pages in parallel (default: half the cores, at most 4), `--range 10-20`, `--audio file.wav` or the project's `audio/mix.wav`, `--crf`, `--preset`. |
+| `motigen stability -t 3,10` | Renders consecutive frames at those moments and reports what changed between them (`--every 2`, `--frames 3`, `--still` to fail on any change). |
 | `motigen events` | The page's `events()` into `audio/events.json`: voice cues, clicks, keys, Enter presses, effects. |
 | `motigen record [take.mjs]` | Runs a take script; it imports `{ Term, Browser, sleep }` from `motigenjs/record`. |
 | `motigen vo [lines.txt]` | Narration: one ElevenLabs call for the whole script, split per line into `audio/vo/` with `vo.json`. `vo split` uses a saved response, `vo import` your own recordings, `vo check` flags breathy or garbled lines. |
@@ -145,6 +146,22 @@ lines, so pauses sound natural and every line is its own file. Recorded your own
 click / key / Enter sounds for what the recorder logged (synthesised when `audio/sfx/` is empty), loops the music
 bed with a crossfade, ducks it under the voice and masters with ffmpeg's two-pass loudnorm. The levels, the
 ducking and the target live under `"mix"` in `motigen.json`. [docs/audio.md](docs/audio.md).
+
+## Stillness
+
+A still shot has to repeat the same pixels frame after frame; the smallest shimmer on text reads as jitter once
+it is encoded. motigen is built so that it does not happen, and ships the check:
+
+- Every frame is a pure function of `t`: nothing on screen may depend on the clock, on CSS animations or on
+  unseeded randomness.
+- The guide player snaps its camera to whole pixels and a fixed scale grid, so a slow pan moves in clean steps
+  and a hold repeats one transform; the canvas kit keeps hand-drawn strokes on one seed (no "line boil"); the
+  templates settle every animated value to an exact number.
+- The encoder puts keyframes every 2 s and nowhere else (`--gop`), so fine texture does not pulse on holds.
+- `motigen stability -t 3,10,20` renders consecutive frames at those moments and reports the share of pixels
+  that changed, with a box around the change and a `-diff.png` that shows it brightened; `--still` fails when a
+  moment is not perfectly still. A cursor, a caret or a spinner show up as small boxes; jitter shows up as a
+  small change spread across text that should not move.
 
 ## Why not …
 

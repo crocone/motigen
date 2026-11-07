@@ -16,6 +16,7 @@ const USAGE = `motigen ${VERSION} — video as code
   motigen preview [--port 4310] [--open]     player: scrub, sound, formats, a render button
   motigen frames -t 1,2.5,10 [-o shots]      stills at those seconds (jpeg; --png; --element '#terminal')
   motigen render [-o out.mp4]                the video (--fps 30 --workers 4 --audio audio/mix.wav --range 10-20)
+  motigen stability -t 3,10 [--every 2]      do still moments stay still? pixels changed between consecutive frames (--still: fail if not)
   motigen events [-o audio/events.json]      the timeline's sound events, for the mix
   motigen vo [audio/lines.txt]               narration: one ElevenLabs call, split per line into audio/vo/ ($ELEVENLABS_API_KEY)
   motigen vo split <resp.json> <lines.txt>   split a saved with-timestamps response instead of calling the API
@@ -36,7 +37,7 @@ Options:
   --query "fmt=v"        query string for the page
   --scale N              device scale factor for stills (default 1)
   --no-audio             render without sound even if audio/mix.wav exists
-  --crf N --preset P     x264 quality (default 14, slow)
+  --crf N --preset P     x264 quality (default 14, slow); --gop <s> keyframe interval in seconds (default 2)
   -j, --workers N        pages rendering in parallel (default: half the cores, at most 4)
   --channel chrome       installed Chrome instead of Playwright's Chromium
   --no-gpu / --gpu       GPU flags (default: on under Windows)
@@ -44,6 +45,7 @@ Options:
   --timeout <s>          seconds to wait for window.__film.ready (default 60)
   --voice <id> --model <id> --seed <n>   TTS settings (also "vo": {…} in motigen.json)
   --limit <n>            vo check: flatness above this is flagged (default 0.12)
+  --frames <n>           stability: consecutive frames per sample (default 3); --threshold <0-255> pixel change that counts (8)
 
 motigen.json may also hold "vo": { "voice", "model", "seed", "settings" }, "mix": { levels, ducking, target } and
 "spellings": [["Acme Cloud dot com", "acmecloud.com"]] for the subtitles.
@@ -57,6 +59,7 @@ const OPTIONS = {
   crf: { type: 'string' }, preset: { type: 'string' }, channel: { type: 'string' }, gpu: { type: 'boolean' }, 'no-gpu': { type: 'boolean' },
   ffmpeg: { type: 'string' }, timeout: { type: 'string' }, port: { type: 'string' }, open: { type: 'boolean' }, force: { type: 'boolean' },
   voice: { type: 'string' }, model: { type: 'string' }, seed: { type: 'string' }, limit: { type: 'string' },
+  frames: { type: 'string' }, threshold: { type: 'string' }, still: { type: 'boolean' }, gop: { type: 'string' },
   help: { type: 'boolean', short: 'h' }, version: { type: 'boolean', short: 'v' },
 };
 
@@ -109,6 +112,23 @@ const commands = {
     for (const f of files) console.log(show(f));
   },
 
+  async stability(v, pos) {
+    const t = await target(v, v.fmt?.[0]);
+    const times = (v.times || pos[0] || '').split(/[,\s]+/).filter(Boolean).map(Number);
+    const every = num(v.every, 'every', 0);
+    if (!times.length && !every) fail('stability: give the moments, e.g. -t 3,10,20 (or --every 2)');
+    const { stability } = await import('./stability.js');
+    const rows = await stability({ ...open(t), fps: t.fps, times, every, frames: num(v.frames, 'frames', 3), threshold: num(v.threshold, 'threshold', 8), out: resolve(t.project, v.out || 'stability'), ffmpeg: t.ffmpeg });
+    let moving = 0;
+    for (const r of rows) {
+      const parts = r.pairs.map(p => `${p.pct.toFixed(2)}%${p.box ? ` @${p.box[0]},${p.box[1]}-${p.box[2]},${p.box[3]}` : ''}`);
+      console.log(`${r.t.toFixed(2).padStart(7)} s  ${r.verdict.padEnd(7)} ${parts.join(' | ')}`);
+      if (r.verdict !== 'still') moving++;
+    }
+    console.log(`${rows.length} moments · ${rows.length - moving} still · ${moving} with changes (a -diff.png next to each changed frame shows what moved) · ${show(resolve(t.project, v.out || 'stability'))}`);
+    if (v.still && moving) { console.error(`--still: ${moving} of ${rows.length} moments are not still`); process.exitCode = 2; }
+  },
+
   async events(v) {
     const t = await target(v, v.fmt?.[0]);
     const out = resolve(t.project, v.out || join(t.cfg.audio, 'events.json'));
@@ -121,7 +141,7 @@ const commands = {
     const out = resolve(t.project, v.out || t.outDefault);
     const audio = v['no-audio'] ? null : v.audio ? resolve(t.project, v.audio) : defaultAudio(t.cfg);
     const bar = progress('render');
-    const r = await renderVideo({ ...open(t), out, fps: t.fps, audio, crf: num(v.crf, 'crf', 14), preset: v.preset || 'slow', range: parseRange(v.range), workers: num(v.workers, 'workers', defaultWorkers()), ffmpeg: t.ffmpeg, onProgress: bar });
+    const r = await renderVideo({ ...open(t), out, fps: t.fps, audio, crf: num(v.crf, 'crf', 14), preset: v.preset || 'slow', gop: num(v.gop, 'gop', 2), range: parseRange(v.range), workers: num(v.workers, 'workers', defaultWorkers()), ffmpeg: t.ffmpeg, onProgress: bar });
     bar(r.frames, r.frames, true);
     console.log(`${show(r.out)} · ${r.frames} frames @ ${r.fps} fps${audio ? ' · audio ' + relative(t.project, audio) : ' · silent'} · ${r.seconds.toFixed(0)} s`);
   },

@@ -22,7 +22,9 @@ Commands: `init`, `record`, `preview`, `frames`, `events`, `vo`, `mix`, `srt`, `
    **Canvas:** write `film.js` (`load`, `LAYOUTS` for both formats, `render(ctx, f)`, `mixSpec`); `VO_CUES` put the
    first word of each line on a frame. **Dom:** edit `film.html`.
 4. **Look before rendering.** `motigen frames -t 1,5,12` and open the JPEGs; `motigen preview` for scrubbing.
-   Check both formats when the project has them (`--fmt v`).
+   Check both formats when the project has them (`--fmt v`). Then `motigen stability -t <a few hold moments>
+   --still`: every hold must report `still`; a `small` change on text that should not move is jitter — find the
+   value that still changes (a transform that never settles, a position computed from the clock, line boil).
 5. **Sound.** `motigen vo` (needs `ELEVENLABS_API_KEY` and the voice id) or `motigen vo import` for recordings;
    `motigen vo check`; `motigen events`; `motigen mix`. Listen: `audio/mix.wav` should sit at −14 LUFS.
 6. **Build.** `motigen build` renders every format and writes the `.srt`. Report the output paths and lengths.

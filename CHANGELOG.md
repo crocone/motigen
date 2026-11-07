@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.1 — 2026-11-07
+
+Stillness, built in and measured.
+
+- `motigen stability -t …`: renders consecutive frames at chosen moments and reports the share of pixels that
+  changed, with a bounding box and a brightened `-diff.png`; `--still` fails on any change. The examples' holds
+  are checked in CI.
+- The guide player snaps its camera translation to whole pixels and its scale to a fixed grid; its transient
+  transforms settle to `none`.
+- The dom template no longer keeps a "breathing" element; its animated values settle exactly.
+- x264 keyframes only on the regular interval (`--gop`, default 2 s), no scene-cut keyframes: no texture pulse.
+
 ## 0.1.0 — 2026-11-07
 
 First release. The npm package is `motigenjs` (npm keeps the bare name as too close to an existing package); the

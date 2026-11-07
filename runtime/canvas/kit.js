@@ -19,7 +19,8 @@ canvas.width = W; canvas.height = H;
 export const ctx = canvas.getContext('2d', { alpha: false });
 export const off = (w, h) => { const c = new OffscreenCanvas(w, h); return [c, c.getContext('2d')]; };
 
-// Line boil (drawings re-seeded on twos) reads as jitter on video, so it is off unless ?boil=1.
+// Line boil (hand-drawn strokes re-seeded 12 times a second) reads as jitter on video, so it is off: every stroke
+// keeps one seed for the whole film and a still shot repeats the same pixels. ?boil=1 turns it on for experiments.
 export const BOIL = Q.get('boil') === '1';
 export const bt = f => (BOIL ? Math.floor(f / 2) : 0);
 export const on2 = f => Math.floor(f / 2) * 2;               // quantise a frame to twos

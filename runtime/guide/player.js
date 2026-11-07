@@ -213,8 +213,8 @@ async function renderAt(t) {
   const k = switching ? ease(lt / 0.45) : 1;
   const front = active === 'browser' ? winB : winT, back = active === 'browser' ? winT : winB;
   front.style.zIndex = 2; back.style.zIndex = 1;
-  front.style.opacity = k; front.style.transform = `translateY(${(1 - k) * 36}px) scale(${0.985 + 0.015 * k})`;
-  back.style.opacity = switching ? 1 - k * 0.999 : 0; back.style.transform = `scale(${1 - 0.02 * k})`;
+  front.style.opacity = k; front.style.transform = k === 1 ? 'none' : `translateY(${Math.round((1 - k) * 36)}px) scale(${0.985 + 0.015 * k})`;
+  back.style.opacity = switching ? 1 - k * 0.999 : 0; back.style.transform = k === 1 ? 'none' : `scale(${1 - 0.02 * k})`;
 
   // browser content
   const bShot = shot.kind === 'browser' ? shot : switching && prev.kind === 'browser' ? prev : null;
@@ -261,11 +261,13 @@ async function renderAt(t) {
   if (tShot) await termAt(tShot === shot ? srcOf(shot, lt) : srcOf(tShot, tShot.dur));
   else await termAt(0);
 
-  // camera
+  // camera. The translation is snapped to whole pixels and the scale to 1/10000: a slow drift then moves in
+  // clean one-pixel steps and a hold repeats the exact same transform every frame, so text is never re-rasterised
+  // at a slightly different sub-pixel offset from one frame to the next (that reads as jitter on video).
   const place = (el, z, unit) => {
-    const [s, x, y] = z; const cx = x * unit, cy = y * unit;
+    const [s0, x, y] = z; const s = Math.round(s0 * 1e4) / 1e4, cx = x * unit, cy = y * unit;
     // keep the zoomed content inside the window: no empty edges
-    const tx = clamp(VW / 2 - cx * s, VW - VW * s, 0), ty = clamp(VH / 2 - cy * s, VH - VH * s, 0);
+    const tx = Math.round(clamp(VW / 2 - cx * s, VW - VW * s, 0)), ty = Math.round(clamp(VH / 2 - cy * s, VH - VH * s, 0));
     el.style.transform = s === 1 ? 'none' : `translate(${tx}px, ${ty}px) scale(${s})`;
   };
   const zb = shot.kind === 'browser' ? zoomAt(shot, lt) : switching && prev.kind === 'browser' ? zoomAt(prev, prev.dur) : [1, 800, 450];
@@ -281,14 +283,14 @@ async function renderAt(t) {
   if (ch) {
     chapter.querySelector('.n').textContent = ch[0]; chapter.querySelector('.t').textContent = ch[1];
     const kc = ease((t - chapterSince) / 0.4);
-    chapter.style.opacity = kc; chapter.style.transform = `translateX(${(1 - kc) * -24}px)`;
+    chapter.style.opacity = kc; chapter.style.transform = `translateX(${Math.round((1 - kc) * -24)}px)`;
   }
   const kb = (shot.keys || []).find(([a, b]) => lt >= a && lt < b);
   key.style.display = kb ? 'flex' : 'none';
   if (kb) {
     key.querySelector('kbd').textContent = kb[2]; key.querySelector('span').textContent = kb[3] || '';
     const kk = Math.min(ease((lt - kb[0]) / 0.25), 1 - ease((lt - (kb[1] - 0.25)) / 0.25));
-    key.style.opacity = kk; key.style.transform = `translateX(-50%) translateY(${(1 - kk) * -14}px)`;
+    key.style.opacity = kk; key.style.transform = `translateX(-50%) translateY(${Math.round((1 - kk) * -14)}px)`;
   }
   const nt = shot.note;
   note.textContent = nt || ''; note.style.opacity = nt && shot.kind !== 'card' ? Math.min(ease(lt / 0.4), 1 - ease((lt - shot.dur + 0.4) / 0.4)) : 0;

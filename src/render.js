@@ -124,13 +124,16 @@ function run(cmd, args) {
   });
 }
 
-const x264 = (fps, crf, preset) => ['-c:v', 'libx264', '-preset', preset, '-crf', String(crf), '-x264-params', 'aq-mode=3:aq-strength=0.9', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-g', String(fps * 2), '-movflags', '+faststart'];
+// Keyframes every `gop` seconds, and only there (no scene-cut keyframes): each I-frame re-encodes fine texture a
+// little differently, which reads as a pulse on a still shot, so they are kept rare and regular. 1 s made paper
+// grain breathe; 2 s is quiet and still seeks fine.
+const x264 = (fps, crf, preset, gop = 2) => ['-c:v', 'libx264', '-preset', preset, '-crf', String(crf), '-x264-params', 'aq-mode=3:aq-strength=0.9:scenecut=0', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-g', String(Math.max(1, Math.round(fps * gop))), '-movflags', '+faststart'];
 // audio padded to the video's length, then cut to it: the video always decides the duration
 const audioArgs = audio => (audio ? ['-i', audio, '-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-af', 'apad', '-shortest'] : []);
 
 /** Frames [from, to) of one open film → x264 mp4 (with audio when given). */
-export async function encodeRange(film, { from, to, fps, out, audio, crf = 14, preset = 'slow', ffmpeg = 'ffmpeg', onFrame }) {
-  const args = ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-', ...audioArgs(audio), ...x264(fps, crf, preset), out];
+export async function encodeRange(film, { from, to, fps, out, audio, crf = 14, preset = 'slow', gop = 2, ffmpeg = 'ffmpeg', onFrame }) {
+  const args = ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-', ...audioArgs(audio), ...x264(fps, crf, preset, gop), out];
   let err = '', failed = null;
   const ff = spawn(ffmpeg, args, { stdio: ['pipe', 'ignore', 'pipe'] });
   ff.stderr.on('data', d => { err += d; });
@@ -157,7 +160,7 @@ export async function encodeRange(film, { from, to, fps, out, audio, crf = 14, p
  * Render the whole film (or `range` = [a, b] seconds) to `out`.
  * @returns {Promise<{ out: string, frames: number, fps: number, seconds: number }>}
  */
-export async function renderVideo({ out, fps, audio, crf = 14, preset = 'slow', range, workers = 1, ffmpeg = 'ffmpeg', onProgress, ...open }) {
+export async function renderVideo({ out, fps, audio, crf = 14, preset = 'slow', gop = 2, range, workers = 1, ffmpeg = 'ffmpeg', onProgress, ...open }) {
   const t0 = Date.now();
   out = resolve(out);
   const browser = await launch({ channel: open.channel, gpu: open.gpu });
@@ -173,7 +176,7 @@ export async function renderVideo({ out, fps, audio, crf = 14, preset = 'slow', 
     workers = Math.max(1, Math.min(workers | 0 || 1, n));
     await mkdir(dirname(out), { recursive: true });
     if (workers === 1) {
-      await encodeRange(films[0], { from: first, to: last, fps, out, audio, crf, preset, ffmpeg, onFrame: i => onProgress?.(i, n) });
+      await encodeRange(films[0], { from: first, to: last, fps, out, audio, crf, preset, gop, ffmpeg, onFrame: i => onProgress?.(i, n) });
     } else {
       const chunk = Math.ceil(n / workers);
       while (films.length < workers) films.push(await openFilm({ ...open, browser }));
@@ -183,7 +186,7 @@ export async function renderVideo({ out, fps, audio, crf = 14, preset = 'slow', 
         if (from >= to) return null;
         const part = `${out}.part${String(w).padStart(2, '0')}.mp4`;
         parts.push(part);
-        return encodeRange(film, { from, to, fps, out: part, crf, preset, ffmpeg, onFrame: i => { done[w] = i; onProgress?.(done.reduce((x, y) => x + y, 0), n); } });
+        return encodeRange(film, { from, to, fps, out: part, crf, preset, gop, ffmpeg, onFrame: i => { done[w] = i; onProgress?.(done.reduce((x, y) => x + y, 0), n); } });
       }));
       const list = `${out}.parts.txt`;
       await writeFile(list, parts.map(p => `file '${p.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n') + '\n');

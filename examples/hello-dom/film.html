@@ -5,14 +5,16 @@
 <title>hello-dom</title>
 <style>
   /* The contract: window.__film = { ready, dur, fps, renderAt(t) }. Every value on screen is a pure function of t,
-     so motigen can render any frame in any order. No libraries, no build step: edit, reload, render. */
+     so motigen can render any frame in any order. No libraries, no build step: edit, reload, render.
+     Stillness: positions are whole pixels, transforms settle to exact values (scale(1), translate 0) and no CSS
+     animation or transition runs on its own; `motigen stability -t 7.5` checks that a hold repeats the same pixels. */
   @font-face { font-family: 'Geist'; font-weight: 500; font-display: block; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-500-normal.woff2) format('woff2'); }
   @font-face { font-family: 'Geist'; font-weight: 800; font-display: block; src: url(/_motigen/vendor/geist-sans/files/geist-sans-latin-800-normal.woff2) format('woff2'); }
   @font-face { font-family: 'Geist Mono'; font-weight: 500; font-display: block; src: url(/_motigen/vendor/geist-mono/files/geist-mono-latin-500-normal.woff2) format('woff2'); }
   :root { --paper: #f6f2ea; --ink: #1f1d1a; --muted: #6b665d; --accent: #ee6a4a; }
   html, body { margin: 0; background: #000; }
   #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: radial-gradient(1400px 900px at 30% 20%, #fbf8f2, var(--paper) 60%, #ebe5d8); font-family: Geist, system-ui, sans-serif; color: var(--ink); }
-  .abs { position: absolute; will-change: transform, opacity; }
+  .abs { position: absolute; }
   #title { left: 160px; top: 300px; font-size: 128px; font-weight: 800; letter-spacing: -.045em; line-height: 1; transform-origin: 0 50%; }
   #sub { left: 164px; top: 470px; font-size: 40px; font-weight: 500; color: var(--muted); }
   .line { left: 164px; font-size: 34px; font-weight: 500; font-family: 'Geist Mono', monospace; }
@@ -49,9 +51,9 @@
     $('sub').style.opacity = prog(t, 1.4, 2.0); $('sub').style.transform = `translateY(${16 * (1 - out(prog(t, 1.4, 2.0)))}px)`;
     const lines = ['$ motigen frames -t 0,2,5', '$ motigen render', '$ motigen preview'];
     lines.forEach((s, i) => { const k = prog(t, 2.2 + i * 1.2, 3.0 + i * 1.2); $('l' + (i + 1)).textContent = typed(s, k) + (k > 0 && k < 1 ? '▌' : ''); });
-    // the dot breathes on a fixed clock, so it is the same at every render of the same t
-    const b = 1 + 0.06 * Math.sin(t * Math.PI * 1.5);
-    $('dot').style.transform = `scale(${b * out(prog(t, 0, 0.6))})`;
+    // the dot pops in, then holds: once a thing has landed, its transform must stop changing, or its edges get
+    // re-rasterised a little differently every frame and the video shows a shimmer where nothing should move
+    $('dot').style.transform = `scale(${out(prog(t, 0, 0.6))})`;
     $('end').style.opacity = prog(t, 6.5, 7.0);
   }
 

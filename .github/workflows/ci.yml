@@ -18,10 +18,14 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm test
-      - name: dom example renders
-        run: node bin/motigen.js build -C examples/hello-dom --range 0-2 --preset ultrafast -j 2
-      - name: canvas example renders both formats with its in-page mix
-        run: node bin/motigen.js build -C examples/hello-canvas --range 0-2 --preset ultrafast -j 2
+      - name: dom example renders, and its holds are still
+        run: |
+          node bin/motigen.js build -C examples/hello-dom --range 0-2 --preset ultrafast -j 2
+          node bin/motigen.js stability -C examples/hello-dom -t 3,5.5,7.5 --still
+      - name: canvas example renders both formats with its in-page mix, and its holds are still
+        run: |
+          node bin/motigen.js build -C examples/hello-canvas --range 0-2 --preset ultrafast -j 2
+          node bin/motigen.js stability -C examples/hello-canvas --fmt h -t 3.5,5.5,9.5,11 --still
       - name: guide example records a take and renders it
         run: |
           cd examples/hello-guide
