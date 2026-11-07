@@ -8,7 +8,7 @@
 // Output: <dir>/<name>.out (the raw stream, after one header line) and <dir>/<name>.tm (`script -T` timing:
 // "<seconds since the previous chunk> <bytes>" per line), plus <name>.marks.json for the marks you set.
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync, appendFileSync, readFileSync, existsSync, rmSync, openSync, writeSync, closeSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, openSync, writeSync, closeSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -76,12 +76,13 @@ export class Term {
     catch (e) { throw new Error(`could not start ${shell}: ${e.message}`); }
     // the stream file, after a header line like `script` writes
     this.fd = openSync(this.outFile, 'w');
+    this.tmFd = openSync(this.tmFile, 'w');
     writeSync(this.fd, `motigen term ${new Date().toISOString()} ${this.cols}x${this.rows} ${shell}\n`);
     this.buf = ''; this.last = now();
     this.p.onData(d => {
       const b = Buffer.from(d, 'utf8'), t = now();
       writeSync(this.fd, b);
-      appendFileSync(this.tmFile, `${(t - this.last).toFixed(6)} ${b.length}\n`);
+      writeSync(this.tmFd, `${(t - this.last).toFixed(6)} ${b.length}\n`);
       this.last = t; this.buf += d;
     });
     this.exited = new Promise(r => this.p.onExit(() => { this.gone = true; r(); }));
@@ -99,8 +100,10 @@ export class Term {
     writeFileSync(rc, [`stty cols ${this.cols} rows ${this.rows}`, BASH_RC(this.cwd || '~', this.ps1)].join('\n'));
     const s = `${this.share}/${this.name}`;
     this.p = spawn('docker', ['exec', '-i', this.container, 'script', '-q', '-f', '-T', `${s}.tm`, '-O', `${s}.out`, '-c', `bash --rcfile ${s}.rc -i`], { stdio: ['pipe', 'ignore', 'inherit'] });
-    this.exited = new Promise(r => this.p.on('close', r));
-    this.p.on('error', e => { throw new Error(`docker exec failed: ${e.message}`); });
+    this.exited = new Promise(r => this.p.on('close', () => { this.gone = true; r(); }));
+    // start() fails here, not later as an uncaught exception, when docker cannot be run at all
+    await new Promise((ok, no) => { this.p.once('spawn', ok); this.p.once('error', e => no(new Error(`docker exec failed: ${e.message}`))); });
+    this.p.on('error', () => {});
   }
 
   /** The stream so far, as text. */
@@ -155,7 +158,7 @@ export class Term {
       // nothing stays behind to keep the process alive
       if (!this.gone) { try { this.p.kill(); } catch { /* already gone */ } }
       await Promise.race([this.exited, sleep(3000)]);
-      if (this.fd != null) { closeSync(this.fd); this.fd = null; }
+      for (const k of ['fd', 'tmFd']) if (this[k] != null) { closeSync(this[k]); this[k] = null; }
     }
     writeFileSync(join(this.dir, `${this.name}.marks.json`), JSON.stringify({ t0: this.t0, marks: this.marks }, null, 1));
   }

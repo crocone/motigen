@@ -228,7 +228,7 @@ const commands = {
   async init(v, pos) {
     const { init } = await import('./init.js');
     const [template, dir] = pos;
-    if (!template || !dir) fail('init: motigen init <guide|dom> <dir>');
+    if (!template || !dir) fail('init: motigen init <guide|dom|canvas> <dir>');
     const files = await init(template, dir, { force: !!v.force });
     const where = show(resolve(dir)) || '.';
     console.log(`${template} project in ${where}:`);

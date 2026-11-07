@@ -10,7 +10,7 @@ export function srt(events, vo, { spellings = [] } = {}) {
   const meta = Object.fromEntries(lines.map(m => [m.id, m]));
   const rows = [];
   let i = 1;
-  for (const v of [...events.vo].sort((a, b) => a.t - b.t)) {
+  for (const v of [...(events.vo || [])].sort((a, b) => a.t - b.t)) {
     const m = meta[v.id];
     if (!m) throw new Error(`srt: no line ${v.id} in vo.json`);
     let text = m.text;
@@ -25,5 +25,5 @@ export async function writeSrt({ dir, out, spellings }) {
   const vo = JSON.parse(await readFile(join(dir, 'vo', 'vo.json'), 'utf8'));
   const s = srt(events, vo, { spellings });
   await writeFile(out, s, 'utf8');
-  return { out, cues: events.vo.length };
+  return { out, cues: (events.vo || []).length };
 }

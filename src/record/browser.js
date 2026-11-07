@@ -8,9 +8,8 @@
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { createResolver, TYPES } from '../serve.js';
+import { createResolver } from '../serve.js';
 import { readFile } from 'node:fs/promises';
-import { extname } from 'node:path';
 import { sleep } from './term.js';
 
 const now = () => Date.now() / 1000;
@@ -57,7 +56,7 @@ export class Browser {
     await this.ctx.route(`${origin.replace(/\/$/, '')}/**`, async route => {
       const r = res(new URL(route.request().url()).pathname);
       if (!r) return route.fulfill({ status: 404, body: 'not found' });
-      try { return route.fulfill({ status: 200, body: await readFile(r.file), headers: { 'content-type': TYPES[extname(r.file)] || r.type } }); }
+      try { return route.fulfill({ status: 200, body: await readFile(r.file), headers: { 'content-type': r.type } }); }
       catch { return route.fulfill({ status: 404, body: 'missing' }); }
     });
   }

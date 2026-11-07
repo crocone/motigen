@@ -144,7 +144,9 @@ export async function encodeRange(film, { from, to, fps, out, audio, crf = 14, p
     if (failed) throw failed;
     await film.at(i / fps);
     const buf = await film.shot('png');
-    if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
+    // back-pressure: wait for drain, or for ffmpeg to go away (a dead stdin never drains)
+    if (!ff.stdin.write(buf)) await Promise.race([new Promise(r => ff.stdin.once('drain', r)), exit.catch(() => {})]);
+    if (failed) throw failed;
     onFrame?.(i - from + 1);
   }
   ff.stdin.end();

@@ -4,7 +4,7 @@
 //   split   an ElevenLabs with-timestamps response saved earlier (resp.json) → the same split
 //   import  wav files you recorded or generated elsewhere, named in order (any names, sorted)
 // and `check` flags lines where the TTS went breathy or garbled (spectral flatness over the voiced frames).
-import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, unlink } from 'node:fs/promises';
 import { join, basename, extname } from 'node:path';
 import { PCM, envelope, speechSpan } from './pcm.js';
 import { decode } from './decode.js';
@@ -87,7 +87,7 @@ export async function tts(linesFile, out, opts = {}) {
   return splitResponse(resp, lines, out, { meta: { provider: 'elevenlabs', voice: opts.voice, model: opts.model || ELEVENLABS.model, seed: opts.seed ?? null, settings: opts.settings || ELEVENLABS.settings } });
 }
 
-/** vo.json for audio files already in `dir` (any format), in sorted order, one per line. Files are renamed to L01… */
+/** vo.json for audio files already in `dir` (any format), in sorted order, one per line. Files become L01.wav… (the originals are removed). */
 export async function importDir(dir, linesFile, { rename = true } = {}) {
   const lines = linesFile ? await readLines(linesFile) : [];
   const files = (await readdir(dir)).filter(f => /\.(wav|mp3|m4a|ogg|flac|webm)$/i.test(f) && !/^L\d+\.wav$/.test(f)).sort();
@@ -98,7 +98,7 @@ export async function importDir(dir, linesFile, { rename = true } = {}) {
   const rows = [];
   for (let k = 0; k < src.length; k++) {
     const name = id(k), clip = (await decode(join(dir, src[k]), { channels: 1 }));
-    if (rename && src[k] !== `${name}.wav`) await writeWav(join(dir, `${name}.wav`), clip);
+    if (rename && src[k] !== `${name}.wav`) { await writeWav(join(dir, `${name}.wav`), clip); await unlink(join(dir, src[k])); }
     rows.push({ id: name, dur: +clip.duration.toFixed(3), text: lines[k] || basename(src[k], extname(src[k])), ...speechSpan(clip) });
   }
   await writeFile(join(dir, 'vo.json'), JSON.stringify({ provider: 'import', lines: rows }, null, 1));

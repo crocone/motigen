@@ -27,8 +27,7 @@ window.addEventListener('resize', fit);
 async function load() {
   stop();
   const f = current();
-  size = f.size; fps = f.fps || P.fps;
-  $('#dims').textContent = `${size[0]}×${size[1]} · ${fps} fps`;
+  size = f.size;
   fit();
   film = null; $('#loading').style.display = 'flex'; $('#loading').textContent = 'loading…';
   const fr = $('#film');
@@ -42,6 +41,8 @@ async function load() {
     if (Date.now() - t0 > 60000) { $('#loading').textContent = 'the page did not set window.__film.ready within 60 s (see its console)'; return; }
   }
   $('#loading').style.display = 'none';
+  fps = f.fps || P.fps || film.fps || 30; // the config's rate, else the film's own, else 30 (as the renderer does)
+  $('#dims').textContent = `${size[0]}×${size[1]} · ${fps} fps`;
   $('#scrub').max = film.dur; $('#dur').textContent = `/ ${film.dur.toFixed(2)} s`;
   await show(Math.min(cur, film.dur - 1 / fps));
 }

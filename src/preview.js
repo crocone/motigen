@@ -10,7 +10,7 @@ export async function preview({ project, port = 4310, open = false, channel, gpu
   const jobs = new Map();
   let nextId = 1;
   const json = (res, code, obj) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(obj)); return true; };
-  const body = req => new Promise(r => { let s = ''; req.on('data', d => { s += d; }); req.on('end', () => r(s ? JSON.parse(s) : {})); });
+  const body = req => new Promise((ok, no) => { let s = ''; req.on('data', d => { s += d; }); req.on('error', no); req.on('end', () => { try { ok(s ? JSON.parse(s) : {}); } catch (e) { no(new Error(`bad JSON body: ${e.message}`)); } }); });
   const openOpts = (cfg, f) => ({ project: cfg.root, page: f.page, query: f.query, size: f.size, channel, gpu });
 
   const api = async (req, res, url) => {

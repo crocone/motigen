@@ -64,6 +64,27 @@ test('mix lays out voice, effects and a bed and normalises (limiter master, no f
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
+test('a bed shorter than the crossfade still loops cleanly, and a late hit is trimmed, not dropped', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'motigen-mix2-'));
+  try {
+    await mkdir(join(dir, 'sfx'), { recursive: true });
+    await writeWav(join(dir, 'bed.wav'), new PCM([sine(110, 0.8, 0.2), sine(110, 0.8, 0.2)], SR));          // 0.8 s < 2 s crossfade
+    await writeWav(join(dir, 'sfx', 'ping.wav'), new PCM([sine(880, 1.5, 0.5)], SR));
+    await writeFile(join(dir, 'sfx', 'sfx.json'), JSON.stringify({ ping: { file: 'ping.wav', hit: 1.0 } }));
+    await writeFile(join(dir, 'events.json'), JSON.stringify({ dur: 3, sfx: [{ id: 'ping', t: 0.2, db: -6 }] }));
+    const r = await mix({ dir, cfg: { master: 'limiter' } });
+    assert.equal(r.sfx, 1); assert.ok(r.bed.looped);
+    const out = await readWav(join(dir, 'mix.wav'));
+    for (const c of out.channels) for (let i = 0; i < c.length; i++) assert.ok(Number.isFinite(c[i]), 'no NaN in the mix');
+    assert.ok(out.slice(0, 0.1 * SR).rms() > 0, 'the trimmed effect sounds from the start');
+    assert.ok(out.slice(2.5 * SR, 2.9 * SR).rms() > 0, 'the looped bed reaches the end');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('srt tolerates events without voice cues', () => {
+  assert.equal(srt({ dur: 5 }, { lines: [] }), '');
+});
+
 test('synthesised effects are short and normalised', () => {
   for (const id of ['click', 'key', 'enter']) { const p = synthSfx(id); assert.ok(p.duration < 0.1 && Math.abs(p.peak() - 1) < 1e-3, id); }
 });

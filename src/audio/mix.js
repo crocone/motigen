@@ -103,7 +103,8 @@ export async function mix({ dir, events, out, cfg = {}, log = () => {}, ffmpeg =
     cache.set(id, entry);
     return entry;
   };
-  const place = async (id, t, db) => { const e = await sfx(id); if (!e) return; fx.add(e.pcm, t - e.hit, gain(db)); report.sfx++; };
+  // the transient at `hit` lands on the event; a hit later than the event itself cuts the head of the file
+  const place = async (id, t, db) => { const e = await sfx(id); if (!e) return; const at = t - e.hit; if (at >= 0) fx.add(e.pcm, at, gain(db)); else fx.add(e.pcm.slice(Math.round(-at * SR)), 0, gain(db)); report.sfx++; };
   const jitter = rng(7);
   for (const t of events.clicks || []) await place('click', t, C.clickDb);
   for (const t of events.keys || []) await place('key', t, C.keyDb + C.keyJitterDb[0] + jitter() * (C.keyJitterDb[1] - C.keyJitterDb[0]));
@@ -116,7 +117,11 @@ export async function mix({ dir, events, out, cfg = {}, log = () => {}, ffmpeg =
   if (bedFile) {
     const bed = await decode(bedFile);
     let m = bed.clone();
-    const xf = Math.round(C.bedCrossfade * SR), from = Math.min(Math.round(C.bedLoopFrom * SR), Math.max(0, bed.length - xf - 1));
+    // the crossfade never exceeds half the bed, and the loop point leaves at least that much tail, so every pass
+    // appends something even for a short sting
+    const xf = Math.min(Math.round(C.bedCrossfade * SR), Math.floor(bed.length / 2));
+    const loopFrom = Math.round(C.bedLoopFrom * SR);
+    const from = loopFrom + 2 * xf <= bed.length ? loopFrom : 0;   // a bed shorter than that loops as a whole
     let guard = 0;
     while (m.length < N && guard++ < 1000) {
       const tail = bed.slice(from), len = m.length;

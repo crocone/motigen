@@ -1,7 +1,7 @@
 // A project is a folder with the film page and, optionally, motigen.json:
 // {
 //   "page": "film.html",            the page that registers window.__film
-//   "fps": 30,
+//   "fps": 30,                      optional: the page's window.__film.fps otherwise, else 30
 //   "size": [1920, 1080],           viewport
 //   "query": "",                    query string for the page
 //   "audio": "audio",               folder with lines.txt, vo/, bed.wav, sfx/, events.json, mix.wav
@@ -20,7 +20,8 @@ export async function loadProject(dir = '.') {
   try { cfg = JSON.parse(await readFile(file, 'utf8')); }
   catch (e) { if (e.code !== 'ENOENT') throw new Error(`${file}: ${e.message}`); }
   const name = basename(root);
-  const p = { root, file, name, page: 'film.html', fps: 30, size: [1920, 1080], query: '', audio: 'audio', out: `out/${name}.mp4`, formats: null, ...cfg };
+  // fps stays null unless the config sets it: the film's own window.__film.fps wins then, and 30 is the last resort
+  const p = { root, file, name, page: 'film.html', fps: null, size: [1920, 1080], query: '', audio: 'audio', out: `out/${name}.mp4`, formats: null, ...cfg };
   if (!existsSync(join(root, p.page))) throw new Error(`${join(root, p.page)} not found (set "page" in motigen.json, or -p)`);
   return p;
 }
