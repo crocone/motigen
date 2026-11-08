@@ -208,6 +208,12 @@ films. Every port was checked against that pipeline's own output: the guide play
 same frames (SSIM 0.99 against the earlier render), the mix the same loudness and the same waveform within the
 random jitter of the key clicks, the subtitles the same file byte for byte, the canvas films the same frames.
 
+## Releasing
+
+A release is a version bump and a tag: `npm version patch` (or `minor`), `git push --follow-tags`. The
+`publish` workflow then publishes to npm through trusted publishing with provenance, so the package page links
+each version to the commit and the run that built it.
+
 ## Development
 
 ```bash

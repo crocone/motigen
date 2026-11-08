@@ -1,0 +1,28 @@
+# Publishes to npm from GitHub when a version tag is pushed, through npm's trusted publishing (OIDC): no npm
+# token in the repository, no one-time code, and the package page shows the provenance of every release
+# (this repository, this commit, this workflow). One-time setup on npmjs.com → package motigenjs → Settings →
+# Trusted Publishing → GitHub Actions: owner crocone, repository motigen, workflow publish.yml.
+name: publish
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm test
+      - name: the tag must match package.json
+        run: |
+          v=$(node -p "require('./package.json').version")
+          [ "refs/tags/v$v" = "$GITHUB_REF" ] || { echo "tag $GITHUB_REF does not match version $v"; exit 1; }
+      - run: npm publish --provenance --access public

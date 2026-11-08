@@ -58,5 +58,9 @@
   "license": "MIT",
   "optionalDependencies": {
     "node-pty": "^1.1.0"
+  },
+  "homepage": "https://github.com/crocone/motigen#readme",
+  "bugs": {
+    "url": "https://github.com/crocone/motigen/issues"
   }
 }
