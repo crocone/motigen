@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0 — 2026-11-08
+
+Four more scene types, the three themes shown and checked, and a guard against frames that depend on history.
+
+- New scene types: `chart` (bars that grow with counting values, or a smoothed line that draws with a head carrying
+  the running value), `table` (a comparison with ticks and an accent column), `phone` (a phone with an app screen
+  or your screenshot and a dropping notification), `grid` (feature cards with icons). Fourteen kinds in all.
+- `examples/scenes-gallery`: every scene type once with its main options; `docs/img` has its contact sheets in
+  the dark, light and paper themes and in 9:16. `?theme=light|paper|dark` (or `--query "theme=paper"`) previews a
+  theme without touching the film.
+- Portrait layouts: charts, tables and cards are larger in 9:16; the phone sits under its headline.
+- **Fixed: a frame could depend on what was rendered before it.** The scenes styles used `will-change`; with many
+  composited layers the screenshot of a freshly shown scene could be taken before the layer was fully painted
+  (a missing last line in the first render of a scene). The styles no longer use it.
+- `motigen stability --replay` renders every moment a second time, last to first, and fails when a frame differs (edge anti-aliasing noise under 40 of 255 is ignored, `--replay-threshold`):
+  the check that found it, for any page.
+- The scenes player dry-runs every scene when it loads and warns (and sets `window.__film.warnings`) when one is
+  still moving less than 0.3 s before its end, with the duration it needs. An image scene is exempt.
+- The dashboard image: a push-in no longer cuts the sidebar text, and the callout zooms with the picture; window
+  titles sit in the title bar; code scenes type faster between lines.
+- Tests: the gallery is rendered in all three themes and both formats and must have nothing sticking out of the
+  stage or clipped, no warnings, and reproducible frames.
+
 ## 0.2.0 — 2026-11-08
 
 Films that are not boring, and a key that has a place.

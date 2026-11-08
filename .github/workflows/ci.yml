@@ -23,6 +23,11 @@ jobs:
           node bin/motigen.js events -C examples/hello-scenes
           node bin/motigen.js mix -C examples/hello-scenes
           node bin/motigen.js build -C examples/hello-scenes --range 0-3 --preset ultrafast -j 2
+      - name: scenes gallery holds are still and reproducible in all three themes
+        run: |
+          for th in dark light paper; do
+            node bin/motigen.js stability -C examples/scenes-gallery --query "fmt=h&theme=$th" -t 3.7,19.5,24.1,29.1,34.1,38.7,49.1,66.3 --frames 2 --still --replay
+          done
       - name: dom example renders, and its holds are still
         run: |
           node bin/motigen.js build -C examples/hello-dom --range 0-2 --preset ultrafast -j 2

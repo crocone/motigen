@@ -4,10 +4,18 @@
 // anything that depends on wall-clock time). The difference rasters come from ffmpeg, so no image library is needed.
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
+import { openSync, readSync, closeSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { openFilm } from './render.js';
 
-/** Changed pixels between two PNG files: { pct, box: [x0, y0, x1, y1] | null }. */
+/** The width of a PNG file, from its header. */
+function pngWidth(file) {
+  const fd = openSync(file, 'r'), b = Buffer.alloc(24);
+  try { readSync(fd, b, 0, 24, 0); } finally { closeSync(fd); }
+  return b.readUInt32BE(16);
+}
+
+/** Changed pixels between two PNG files: { pct, changed, box: [x0, y0, x1, y1] | null }. */
 export async function diffPng(a, b, { threshold = 8, ffmpeg = process.env.MOTIGEN_FFMPEG || 'ffmpeg' } = {}) {
   const raw = await new Promise((res, rej) => {
     const chunks = []; let err = '';
@@ -16,7 +24,7 @@ export async function diffPng(a, b, { threshold = 8, ffmpeg = process.env.MOTIGE
     p.on('error', e => rej(e.code === 'ENOENT' ? new Error(`${ffmpeg} not found: install ffmpeg and put it in PATH (or set --ffmpeg / $MOTIGEN_FFMPEG)`) : e));
     p.on('close', code => (code === 0 ? res(Buffer.concat(chunks)) : rej(new Error(`ffmpeg could not diff ${a} and ${b}: ${err.trim()}`))));
   });
-  return countDiff(raw, threshold);
+  return countDiff(raw, threshold, pngWidth(a));
 }
 
 /** The size of a PNG from its header. */
@@ -36,10 +44,13 @@ export function countDiff(gray, threshold, width) {
  * @param {number[]} [o.times]   seconds to sample
  * @param {number} [o.every]     sample every N seconds instead
  * @param {number} [o.frames]    consecutive frames per sample (default 3)
+ * @param {boolean} [o.replay]   after all samples, render each moment again, last to first, and compare with its first
+ *                               render: a frame must be a pure function of t, whatever was rendered before it
+ * @param {number} [o.replayThreshold]  per-pixel difference (0-255) that counts in that comparison, default 40
  * @param {string} o.out         folder for the PNGs
- * @returns rows [{ t, pairs: [{ from, to, pct, box }], verdict }]
+ * @returns rows [{ t, pairs: [{ from, to, pct, box }], verdict, replay?: { pct, box } }]
  */
-export async function stability({ times = [], every = 0, frames = 3, out, threshold = 8, ffmpeg = process.env.MOTIGEN_FFMPEG || 'ffmpeg', fps: fpsOpt, ...open }) {
+export async function stability({ times = [], every = 0, frames = 3, replay = false, replayThreshold = 40, out, threshold = 8, ffmpeg = process.env.MOTIGEN_FFMPEG || 'ffmpeg', fps: fpsOpt, ...open }) {
   const film = await openFilm(open);
   try {
     const fps = fpsOpt || film.fps || 30;
@@ -79,6 +90,18 @@ export async function stability({ times = [], every = 0, frames = 3, out, thresh
       // at the -diff.png). motion: more than that.
       const verdict = max === 0 ? 'still' : max < 1 ? 'small' : 'motion';
       rows.push({ t, pairs, verdict, files });
+    }
+    if (replay) {
+      for (const row of [...rows].reverse()) {
+        await film.at(Math.min(row.t, film.dur - 1e-6));
+        const f = join(out, `t${row.t.toFixed(2).padStart(6, '0')}-replay.png`);
+        await writeFile(f, await film.shot('png'));
+        // a replay is compared at a coarser threshold: edge anti-aliasing of an image or a logo may differ by a few
+        // levels between two renders (about 20 of 255), content that is missing or moved differs by a hundred or more
+        row.replay = await diffPng(row.files[0], f, { threshold: replayThreshold, ffmpeg });
+        if (!row.replay.changed) await rm(f, { force: true });
+        else row.verdict = 'unstable';
+      }
     }
     return rows;
   } finally { await film.close(); }

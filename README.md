@@ -25,8 +25,9 @@ browser and a real terminal into `take/`, and `edit.js` cuts them.
 
 - **Four kinds of film, one contract.** A page registers `window.__film = { ready, dur, renderAt(t) }`. The
   `scenes` template makes a launch video from a list of scenes (kinetic titles, statements with a marker,
-  counting numbers, a product window with a push-in and a callout, a typed terminal, a before/after split, a
-  quote, an end card) with varied transitions and three themes; the `guide` template is a screencast player
+  counting numbers, charts, a comparison table, a phone with a notification, feature cards, a product window with
+  a push-in and a callout, a typed terminal, a before/after split, a quote, an end card) with varied transitions
+  and three themes; the `guide` template is a screencast player
   (browser window, terminal window, chapters, key badges, cards) driven by one edit list; the `canvas` template
   is a hand-drawn 2D engine (paper, letterpress type, ink strokes, a thread, cards, a pencil) with its own
   offline mix; the `dom` template is the bare contract in 80 lines.
@@ -67,7 +68,7 @@ Linux). Without it, record in a container: `backend: 'docker'`.
 | `motigen preview [--port 4310] [--open]` | A player over the project: scrub, play with `audio/mix.wav`, switch formats, render and export events from buttons. |
 | `motigen frames -t 1,2.5,10` | Stills into `shots/` (`--png`, `--every 5`, `--element '#terminal'` with a transparent background, `--scale 2`). |
 | `motigen render` | The video to `out/<name>.mp4`: `-j N` pages in parallel (default: half the cores, at most 4), `--range 10-20`, `--audio file.wav` or the project's `audio/mix.wav`, `--crf`, `--preset`. |
-| `motigen stability -t 3,10` | Renders consecutive frames at those moments and reports what changed between them (`--every 2`, `--frames 3`, `--still` to fail on any change). |
+| `motigen stability -t 3,10` | Renders consecutive frames at those moments and reports what changed between them (`--every 2`, `--frames 3`, `--still` to fail on any change, `--replay` to also render each moment again and fail when it differs). |
 | `motigen events` | The page's `events()` into `audio/events.json`: voice cues, clicks, keys, Enter presses, effects. |
 | `motigen record [take.mjs]` | Runs a take script; it imports `{ Term, Browser, sleep }` from `motigenjs/record`. |
 | `motigen vo [lines.txt]` | Narration: one ElevenLabs call for the whole script, split per line into `audio/vo/` with `vo.json`. `vo voices` lists your voices and their ids, `vo split` uses a saved response, `vo import` your own recordings, `vo check` flags breathy or garbled lines. |
@@ -132,9 +133,12 @@ export default {
 };
 ```
 
-Ten scene kinds, eight transitions that vary on their own, three themes, both formats from one list, and the
-voice, the transition sounds and the typed keys go into the mix. [docs/scenes.md](docs/scenes.md) has every
-field and the rules that keep a film from turning into a slideshow.
+Fourteen scene kinds (title, text, list, stat, chart, table, phone, grid, image, terminal, code, quote, split,
+end), eight transitions that vary on their own, three themes, both formats from one list, and the voice, the
+transition sounds and the typed keys go into the mix. [docs/scenes.md](docs/scenes.md) has every field and the
+rules that keep a film from turning into a slideshow; `examples/scenes-gallery` shows every kind once.
+
+![The scenes template in its three themes](docs/img/scenes-paper.jpg)
 
 **guide** — a screencast. `take.mjs` records the demo site in `site/` (served inside the recorder as
 `https://demo.local`) and a shell on your machine; `edit.js` cuts them:
@@ -186,11 +190,16 @@ it is encoded. motigen is built so that it does not happen, and ships the check:
 - The guide player snaps its camera to whole pixels and a fixed scale grid, so a slow pan moves in clean steps
   and a hold repeats one transform; the canvas kit keeps hand-drawn strokes on one seed (no "line boil"); the
   templates settle every animated value to an exact number.
+- The templates use no `will-change`: it makes the browser keep many composited layers, and then the screenshot
+  of a freshly shown layer can lag, so a frame would depend on what was rendered before it (found the hard way:
+  the last line of a quote went missing in the first render of its scene, and only there).
 - The encoder puts keyframes every 2 s and nowhere else (`--gop`), so fine texture does not pulse on holds.
 - `motigen stability -t 3,10,20` renders consecutive frames at those moments and reports the share of pixels
   that changed, with a box around the change and a `-diff.png` that shows it brightened; `--still` fails when a
   moment is not perfectly still. A cursor, a caret or a spinner show up as small boxes; jitter shows up as a
   small change spread across text that should not move.
+- `--replay` renders every moment a second time, last to first, and fails when a frame comes out different:
+  the proof that a frame is a pure function of `t`, for your own pages too.
 
 ## Why not …
 

@@ -16,7 +16,8 @@ const USAGE = `motigen ${VERSION} — video as code
   motigen preview [--port 4310] [--open]     player: scrub, sound, formats, a render button
   motigen frames -t 1,2.5,10 [-o shots]      stills at those seconds (jpeg; --png; --element '#terminal')
   motigen render [-o out.mp4]                the video (--fps 30 --workers 4 --audio audio/mix.wav --range 10-20)
-  motigen stability -t 3,10 [--every 2]      do still moments stay still? pixels changed between consecutive frames (--still: fail if not)
+  motigen stability -t 3,10 [--every 2]      do still moments stay still? pixels changed between consecutive frames (--still: fail if not;
+                                             --replay: also render each moment again and fail if it comes out different)
   motigen events [-o audio/events.json]      the timeline's sound events, for the mix
   motigen vo [audio/lines.txt]               narration: one ElevenLabs call, split per line into audio/vo/ ($ELEVENLABS_API_KEY)
   motigen vo split <resp.json> <lines.txt>   split a saved with-timestamps response instead of calling the API
@@ -46,7 +47,8 @@ Options:
   --timeout <s>          seconds to wait for window.__film.ready (default 60)
   --voice <id> --model <id> --seed <n>   TTS settings (also "vo": {…} in motigen.json)
   --limit <n>            vo check: flatness above this is flagged (default 0.12)
-  --frames <n>           stability: consecutive frames per sample (default 3); --threshold <0-255> pixel change that counts (8)
+  --frames <n>           stability: consecutive frames per sample (default 3); --threshold <0-255> pixel change that counts (8);
+                         --replay-threshold <0-255> the same for the replay comparison (40: edge anti-aliasing may differ a little)
 
 motigen.json may also hold "vo": { "voice", "model", "seed", "settings" }, "mix": { levels, ducking, target } and
 "spellings": [["Acme Cloud dot com", "acmecloud.com"]] for the subtitles.
@@ -61,7 +63,7 @@ const OPTIONS = {
   crf: { type: 'string' }, preset: { type: 'string' }, channel: { type: 'string' }, gpu: { type: 'boolean' }, 'no-gpu': { type: 'boolean' },
   ffmpeg: { type: 'string' }, timeout: { type: 'string' }, port: { type: 'string' }, open: { type: 'boolean' }, force: { type: 'boolean' },
   voice: { type: 'string' }, model: { type: 'string' }, seed: { type: 'string' }, limit: { type: 'string' },
-  frames: { type: 'string' }, threshold: { type: 'string' }, still: { type: 'boolean' }, gop: { type: 'string' },
+  frames: { type: 'string' }, threshold: { type: 'string' }, still: { type: 'boolean' }, replay: { type: 'boolean' }, 'replay-threshold': { type: 'string' }, gop: { type: 'string' },
   help: { type: 'boolean', short: 'h' }, version: { type: 'boolean', short: 'v' },
 };
 
@@ -120,14 +122,16 @@ const commands = {
     const every = num(v.every, 'every', 0);
     if (!times.length && !every) fail('stability: give the moments, e.g. -t 3,10,20 (or --every 2)');
     const { stability } = await import('./stability.js');
-    const rows = await stability({ ...open(t), fps: t.fps, times, every, frames: num(v.frames, 'frames', 3), threshold: num(v.threshold, 'threshold', 8), out: resolve(t.project, v.out || 'stability'), ffmpeg: t.ffmpeg });
-    let moving = 0;
+    const rows = await stability({ ...open(t), fps: t.fps, times, every, frames: num(v.frames, 'frames', 3), replay: !!v.replay, replayThreshold: num(v['replay-threshold'], 'replay-threshold', 40), threshold: num(v.threshold, 'threshold', 8), out: resolve(t.project, v.out || 'stability'), ffmpeg: t.ffmpeg });
+    let moving = 0, unstable = 0;
     for (const r of rows) {
       const parts = r.pairs.map(p => `${p.pct.toFixed(2)}%${p.box ? ` @${p.box[0]},${p.box[1]}-${p.box[2]},${p.box[3]}` : ''}`);
-      console.log(`${r.t.toFixed(2).padStart(7)} s  ${r.verdict.padEnd(7)} ${parts.join(' | ')}`);
-      if (r.verdict !== 'still') moving++;
+      const rp = r.replay ? `  · replay ${r.replay.changed ? `DIFFERS ${r.replay.pct.toFixed(2)}% @${r.replay.box.join(',')}` : 'identical'}` : '';
+      console.log(`${r.t.toFixed(2).padStart(7)} s  ${r.verdict.padEnd(8)} ${parts.join(' | ')}${rp}`);
+      if (r.verdict === 'unstable') unstable++; else if (r.verdict !== 'still') moving++;
     }
-    console.log(`${rows.length} moments · ${rows.length - moving} still · ${moving} with changes (a -diff.png next to each changed frame shows what moved) · ${show(resolve(t.project, v.out || 'stability'))}`);
+    console.log(`${rows.length} moments · ${rows.length - moving - unstable} still · ${moving} with changes (a -diff.png next to each changed frame shows what moved)${v.replay ? ` · ${unstable} not reproducible` : ''} · ${show(resolve(t.project, v.out || 'stability'))}`);
+    if (unstable) { console.error(`${unstable} frame(s) came out different the second time: the page is not a pure function of t (see the -replay.png files; look for will-change, animations, state kept between frames)`); process.exitCode = 2; }
     if (v.still && moving) { console.error(`--still: ${moving} of ${rows.length} moments are not still`); process.exitCode = 2; }
   },
 

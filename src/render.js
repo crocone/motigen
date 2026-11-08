@@ -38,6 +38,10 @@ export async function openFilm({ project, page: pageName = 'film.html', query = 
   await page.goto(url);
   try { await page.waitForFunction(READY, null, { timeout }); }
   catch (e) { throw new Error(`${url}: window.__film.ready did not become true within ${timeout} ms (${e.message.split('\n')[0]})`); }
+  // Every @font-face the page declares is loaded before the first frame. A face that loads on first use (a weight
+  // the page did not list in its own preload) shows no text until it arrives (font-display: block), so the first
+  // render of whatever uses it would come out without that text: a frame must not depend on what was drawn before.
+  await page.evaluate(() => Promise.all([...document.fonts].map(f => f.load().catch(() => null))).then(() => document.fonts.ready));
   const info = await page.evaluate(() => ({ dur: +window.__film.dur, fps: window.__film.fps || null, canvas: window.__film.canvas instanceof HTMLCanvasElement ? [window.__film.canvas.width, window.__film.canvas.height] : null }));
   if (!(info.dur > 0)) throw new Error(`${url}: window.__film.dur is ${info.dur}`);
   const cdp = await context.newCDPSession(page);
@@ -46,8 +50,14 @@ export async function openFilm({ project, page: pageName = 'film.html', query = 
   const fromCanvas = !!info.canvas && capture !== 'viewport';
   return {
     browser, context, page, cdp, url, dur: info.dur, fps: info.fps, size: fromCanvas ? info.canvas : size, fromCanvas,
-    /** Render the frame at t seconds (awaits the page's renderAt, then two animation frames so the DOM has painted). */
-    at: t => page.evaluate(async t => { await window.__film.renderAt(t); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); }, t),
+    /** Render the frame at t seconds: the page's renderAt, a layout flush and the fonts it may have started to load,
+     *  then two animation frames so the DOM has painted. */
+    at: t => page.evaluate(async t => {
+      await window.__film.renderAt(t);
+      void document.body.offsetHeight;                 // style + layout now, so a face first needed by this frame starts loading
+      await document.fonts.ready;
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    }, t),
     /** Capture the frame: the canvas's pixels, or the viewport. */
     shot: async (format = 'png', quality = 90) => {
       if (fromCanvas) {

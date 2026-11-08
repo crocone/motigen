@@ -20,8 +20,11 @@ Commands: `init`, `record`, `preview`, `frames`, `events`, `vo`, `mix`, `srt`, `
    `motigen.json` for the subtitles. The ElevenLabs key goes into `.env` (`ELEVENLABS_API_KEY=…`), the voice id
    into `motigen.json` (`motigen vo voices` lists them).
 3. **Scenes:** edit `film.js`: one idea per scene, 3–5 s each, never two of the same kind in a row, the real
-   command in a `terminal` scene, the real screenshot in an `image` scene with a callout, one metric in a `stat`
-   scene, a `quote`, an `end` card with the address; `vo` per scene. See docs/scenes.md.
+   command in a `terminal` scene, the real screenshot in an `image` scene with a callout (or a `phone` for a
+   mobile app), one metric in a `stat` scene, a `chart` for a trend, a `table` for a comparison, a `grid` of
+   feature cards, a `quote`, an `end` card with the address; `vo` per scene. The fields of all fourteen scene
+   kinds are in docs/scenes.md and every kind once in examples/scenes-gallery/film.js; preview a theme with
+   `--query "fmt=h&theme=light"`.
    **Guide:** edit `take.mjs` so it drives the real product (`Browser.open` with `map` for a local instance under
    its real domain; `Term` for the shell), run `motigen record take.mjs`, then write `edit.js`: one shot per step,
    terminal bounds as text anchors, `chapter` per step, `keys` for Enter moments, `vo` cues per shot.
@@ -29,8 +32,11 @@ Commands: `init`, `record`, `preview`, `frames`, `events`, `vo`, `mix`, `srt`, `
    first word of each line on a frame. **Dom:** edit `film.html`.
 4. **Look before rendering.** `motigen frames -t 1,5,12` and open the JPEGs; `motigen preview` for scrubbing.
    Check both formats when the project has them (`--fmt v`). Then `motigen stability -t <a few hold moments>
-   --still`: every hold must report `still`; a `small` change on text that should not move is jitter — find the
-   value that still changes (a transform that never settles, a position computed from the clock, line boil).
+   --still --replay`: every hold must report `still` and every replay `identical`; a `small` change on text that
+   should not move is jitter — find the value that still changes (a transform that never settles, a position
+   computed from the clock, line boil); a replay that differs means a frame depends on what was rendered before
+   it (`will-change`, CSS animations, state kept between frames). Read the page's warnings too: the scenes player
+   reports a scene that is still moving at its end — lengthen it.
 5. **Sound.** `motigen vo` (needs `ELEVENLABS_API_KEY` and the voice id) or `motigen vo import` for recordings;
    `motigen vo check`; `motigen events`; `motigen mix`. Listen: `audio/mix.wav` should sit at −14 LUFS.
 6. **Build.** `motigen build` renders every format and writes the `.srt`. Report the output paths and lengths.

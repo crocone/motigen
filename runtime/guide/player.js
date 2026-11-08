@@ -70,7 +70,8 @@ if (hasTerm) {
   termText = new TextDecoder().decode(termRaw);
 }
 
-await Promise.all(['21.5px "Geist Mono"', '600 15px "Geist Mono"', '600 20px "Geist Mono"', '500 22px Geist', '600 26px Geist', '500 32px Geist', '600 24px Geist', '800 96px Geist', '500 15px Geist'].map(f => document.fonts.load(f)));
+// every face declared in player.css (and theme.css): a weight that loads on first use shows no text until it arrives
+await Promise.all([...document.fonts].map(f => f.load().catch(() => null)));
 await document.fonts.ready;
 
 let term = null, written = 0, termSrc = -1;
