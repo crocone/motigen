@@ -11,19 +11,25 @@ make a product video on its own.
 
 ```bash
 npm i -g motigenjs && npx playwright install chromium   # Node 22+, ffmpeg in PATH; the command is `motigen`
-motigen init guide my-guide && cd my-guide
-motigen record take.mjs      # a real browser and a real terminal, recorded into take/
+motigen init scenes my-launch && cd my-launch
+# edit film.js (the scenes) and audio/lines.txt (the voice); put ELEVENLABS_API_KEY=… into .env
 motigen vo                   # narration from audio/lines.txt (ElevenLabs), one file per line
-motigen build                # events → mix → render → subtitles: out/my-guide.mp4 + .srt
+motigen build                # events → mix → render 16:9 and 9:16 → subtitles, into out/
 motigen preview              # scrub it, play it with sound, render from a button
 ```
 
+For a screencast of a real product: `motigen init guide my-guide`, then `motigen record take.mjs` records a real
+browser and a real terminal into `take/`, and `edit.js` cuts them.
+
 ## What you get
 
-- **Three kinds of film, one contract.** A page registers `window.__film = { ready, dur, renderAt(t) }`. The
-  `dom` template is that contract in 80 lines; the `guide` template is a screencast player (browser window,
-  terminal window, chapters, key badges, cards) driven by one edit list; the `canvas` template is a hand-drawn
-  2D engine (paper, letterpress type, ink strokes, a thread, cards, a pencil) with its own offline mix.
+- **Four kinds of film, one contract.** A page registers `window.__film = { ready, dur, renderAt(t) }`. The
+  `scenes` template makes a launch video from a list of scenes (kinetic titles, statements with a marker,
+  counting numbers, a product window with a push-in and a callout, a typed terminal, a before/after split, a
+  quote, an end card) with varied transitions and three themes; the `guide` template is a screencast player
+  (browser window, terminal window, chapters, key badges, cards) driven by one edit list; the `canvas` template
+  is a hand-drawn 2D engine (paper, letterpress type, ink strokes, a thread, cards, a pencil) with its own
+  offline mix; the `dom` template is the bare contract in 80 lines.
 - **A recorder for the real thing.** `Term` records a shell through a pty with `script`-style timing, so the
   player replays the actual bytes through xterm.js; `Browser` records a CDP screencast with the mouse path, the
   clicks, the keys and the URLs, and can serve a local folder or a local instance of your site under its real
@@ -57,14 +63,14 @@ Linux). Without it, record in a container: `backend: 'docker'`.
 
 | Command | What it does |
 |---|---|
-| `motigen init <guide\|dom\|canvas> <dir>` | A new project from a template. |
+| `motigen init <scenes\|guide\|canvas\|dom> <dir>` | A new project from a template. |
 | `motigen preview [--port 4310] [--open]` | A player over the project: scrub, play with `audio/mix.wav`, switch formats, render and export events from buttons. |
 | `motigen frames -t 1,2.5,10` | Stills into `shots/` (`--png`, `--every 5`, `--element '#terminal'` with a transparent background, `--scale 2`). |
 | `motigen render` | The video to `out/<name>.mp4`: `-j N` pages in parallel (default: half the cores, at most 4), `--range 10-20`, `--audio file.wav` or the project's `audio/mix.wav`, `--crf`, `--preset`. |
 | `motigen stability -t 3,10` | Renders consecutive frames at those moments and reports what changed between them (`--every 2`, `--frames 3`, `--still` to fail on any change). |
 | `motigen events` | The page's `events()` into `audio/events.json`: voice cues, clicks, keys, Enter presses, effects. |
 | `motigen record [take.mjs]` | Runs a take script; it imports `{ Term, Browser, sleep }` from `motigenjs/record`. |
-| `motigen vo [lines.txt]` | Narration: one ElevenLabs call for the whole script, split per line into `audio/vo/` with `vo.json`. `vo split` uses a saved response, `vo import` your own recordings, `vo check` flags breathy or garbled lines. |
+| `motigen vo [lines.txt]` | Narration: one ElevenLabs call for the whole script, split per line into `audio/vo/` with `vo.json`. `vo voices` lists your voices and their ids, `vo split` uses a saved response, `vo import` your own recordings, `vo check` flags breathy or garbled lines. |
 | `motigen mix` | `audio/mix.wav` from `events.json`, `vo/`, `sfx/` and `bed.*`; or the canvas kit's own mix when `"mix": {"engine": "page"}`. |
 | `motigen srt` | Subtitles from the voice cues, with the written forms from `"spellings"`. |
 | `motigen build` | `events` → `mix` → `render` (every format) → `srt`. |
@@ -109,7 +115,26 @@ my-guide/
   "spellings": [["Acme Cloud dot com", "acmecloud.com"], ["Pie", "Pi"]] }
 ```
 
-## The three templates
+## The four templates
+
+**scenes** — a film from a list of scenes, for launch videos and explainers:
+
+```js
+export default {
+  theme: 'dark', brand: { text: 'Acme Cloud' },
+  scenes: [
+    { type: 'title', dur: 4.5, vo: 'L01', kicker: 'Introducing', title: 'Ship faster. Sleep better.', sub: 'One command, and it stays up.' },
+    { type: 'terminal', dur: 6, vo: 'L02', lines: [{ cmd: 'acme deploy' }, { out: '✓ Live at https://shop.acme.dev', ok: true, delay: 1.2 }] },
+    { type: 'stat', dur: 4, vo: 'L03', stats: [{ value: 12, suffix: 's', label: 'from push to live' }, { value: 99.99, decimals: 2, suffix: '%', label: 'uptime' }] },
+    { type: 'image', dur: 5, vo: 'L04', src: 'assets/app.png', url: 'app.acme.dev', zoom: { to: 1.08, x: 62, y: 45 }, callout: { x: 71, y: 34, label: 'Live traffic', at: 2 } },
+    { type: 'end', dur: 4, vo: 'L05', wordmark: 'Acme Cloud', url: 'acme.dev', cta: 'Start free' },
+  ],
+};
+```
+
+Ten scene kinds, eight transitions that vary on their own, three themes, both formats from one list, and the
+voice, the transition sounds and the typed keys go into the mix. [docs/scenes.md](docs/scenes.md) has every
+field and the rules that keep a film from turning into a slideshow.
 
 **guide** — a screencast. `take.mjs` records the demo site in `site/` (served inside the recorder as
 `https://demo.local`) and a shell on your machine; `edit.js` cuts them:
@@ -140,7 +165,11 @@ Both formats come from one `LAYOUTS` table. [docs/canvas.md](docs/canvas.md) lis
 ## Sound
 
 `audio/lines.txt` is the script, one line per cue. `motigen vo` sends it to ElevenLabs in one call with character
-timestamps (`ELEVENLABS_API_KEY`, the voice id in `motigen.json`) and cuts the take at the quietest point between
+timestamps and cuts the take at the quietest point between
+lines. The key: create one at elevenlabs.io (profile → API keys) and put `ELEVENLABS_API_KEY=sk_…` into a file
+named `.env` in the project folder (every template ships `.env.example`; `.env` is git-ignored), or export it in
+the shell. The voice: `motigen vo voices` lists the voices of the account with their ids; put one into
+`motigen.json` under `"vo": { "voice": "<id>" }`. Then it cuts the take at the quietest point between
 lines, so pauses sound natural and every line is its own file. Recorded your own? `motigen vo import` writes
 `vo.json` for the files in `audio/vo/`. Then `motigen mix` places each line where the edit put its cue, adds the
 click / key / Enter sounds for what the recorder logged (synthesised when `audio/sfx/` is empty), loops the music

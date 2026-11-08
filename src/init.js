@@ -20,6 +20,7 @@ export async function init(template, dir, { force = false } = {}) {
   await cp(src, dest, { recursive: true, force: true });
   // npm drops .gitignore files from packages, so templates carry it as "gitignore"
   if (existsSync(join(dest, 'gitignore'))) await rename(join(dest, 'gitignore'), join(dest, '.gitignore'));
+  if (existsSync(join(dest, 'env.example'))) await rename(join(dest, 'env.example'), join(dest, '.env.example'));
   const name = basename(dest);
   const files = [];
   async function walk(d) {

@@ -22,6 +22,7 @@ const USAGE = `motigen ${VERSION} — video as code
   motigen vo split <resp.json> <lines.txt>   split a saved with-timestamps response instead of calling the API
   motigen vo import [audio/vo] [lines.txt]   use your own recordings: writes vo.json for the files in the folder
   motigen vo check [audio/vo]                flag breathy or garbled lines (spectral flatness)
+  motigen vo voices                          list the voices of your ElevenLabs account with their ids
   motigen mix                                voice + effects + bed from audio/events.json → audio/mix.wav (−14 LUFS)
   motigen srt [-o out/<name>.srt]            subtitles from the voice cues
   motigen build [--fmt h --fmt v]            events → mix → render → srt, per motigen.json
@@ -49,6 +50,7 @@ Options:
 
 motigen.json may also hold "vo": { "voice", "model", "seed", "settings" }, "mix": { levels, ducking, target } and
 "spellings": [["Acme Cloud dot com", "acmecloud.com"]] for the subtitles.
+The ElevenLabs key goes into .env in the project folder: ELEVENLABS_API_KEY=… (or into the environment).
 `;
 
 const OPTIONS = {
@@ -149,8 +151,12 @@ const commands = {
   async vo(v, pos) {
     const { project, audio, vo: voDir } = await audioOf(v);
     const voMod = await import('./audio/vo.js');
-    const sub = ['tts', 'split', 'import', 'check'].includes(pos[0]) ? pos.shift() : 'tts';
-    if (sub === 'split') {
+    const sub = ['tts', 'split', 'import', 'check', 'voices'].includes(pos[0]) ? pos.shift() : 'tts';
+    if (sub === 'voices') {
+      const voices = await voMod.listVoices();
+      for (const x of voices) console.log(`${x.id}  ${x.name.padEnd(22)} ${x.labels}`);
+      console.log(`${voices.length} voices · put the id into motigen.json: "vo": { "voice": "<id>" }`);
+    } else if (sub === 'split') {
       const [resp, lines] = pos;
       if (!resp || !lines) fail('vo split: motigen vo split <resp.json> <lines.txt>');
       const rows = await voMod.splitResponse(JSON.parse(await readFile(resolve(project.root, resp), 'utf8')), await voMod.readLines(resolve(project.root, lines)), resolve(project.root, v.out || voDir));
@@ -262,6 +268,7 @@ export async function main(argv) {
   try { parsed = parseArgs({ args: argv, options: OPTIONS, allowPositionals: true, strict: true }); }
   catch (e) { throw new Error(`${e.message.replace(/^.*?: /, '')}\n\n${USAGE}`); }
   const { values: v, positionals } = parsed;
+  (await import('./env.js')).loadEnv(resolve(v.project || '.'));
   if (v.version) return commands.version();
   const [cmd, ...pos] = positionals;
   if (v.help || !cmd || cmd === 'help') return commands.help();

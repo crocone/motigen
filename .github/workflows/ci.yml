@@ -18,6 +18,11 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm test
+      - name: scenes example renders both formats, with events and a synthesised mix
+        run: |
+          node bin/motigen.js events -C examples/hello-scenes
+          node bin/motigen.js mix -C examples/hello-scenes
+          node bin/motigen.js build -C examples/hello-scenes --range 0-3 --preset ultrafast -j 2
       - name: dom example renders, and its holds are still
         run: |
           node bin/motigen.js build -C examples/hello-dom --range 0-2 --preset ultrafast -j 2

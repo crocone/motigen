@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0 — 2026-11-08
+
+Films that are not boring, and a key that has a place.
+
+- The `scenes` template: a film from a list of scenes — kinetic titles, statements with a marker sweep, counting
+  numbers, a product window with a push-in and a callout (a mock dashboard when you have no screenshot yet), a
+  typed terminal, a coloured code block, a before/after split, a quote, an end card — with eight transitions that
+  vary on their own, three themes (dark, light, paper), a background that lives, both formats from one list,
+  and the voice, the transition whoosh and the typed keys in the mix. `docs/scenes.md` has the fields and the
+  rules of rhythm.
+- `.env` in the project folder is read (`ELEVENLABS_API_KEY=…`), every template ships `.env.example`, `motigen vo
+  voices` lists the account's voices with their ids, and the errors say where the key and the voice go.
+- Synthesised `whoosh`, `pop` and `tick` effects next to click / key / enter.
+- The motion helpers (`/_motigen/scenes/motion.js`: easings, staggers, a typewriter, number formatting) for any
+  dom film.
+
 ## 0.1.1 — 2026-11-07
 
 Stillness, built in and measured.

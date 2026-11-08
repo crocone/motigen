@@ -1,0 +1,8 @@
+out/
+shots/
+stability/
+audio/events.json
+audio/mix.wav
+audio/mix-raw.wav
+audio/vo/resp.json
+.env

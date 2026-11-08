@@ -11,12 +11,18 @@ Commands: `init`, `record`, `preview`, `frames`, `events`, `vo`, `mix`, `srt`, `
 
 ## Workflow
 
-1. **Pick the template.** `motigen init guide <dir>` for a screencast of a real product (browser + terminal),
-   `motigen init canvas <dir>` for a drawn promo film, `motigen init dom <dir>` for plain HTML/CSS motion.
+1. **Pick the template.** `motigen init scenes <dir>` for a launch video, a feature announcement or an explainer
+   (a list of scenes: title, statement, terminal, numbers, product window, list, split, quote, end);
+   `motigen init guide <dir>` for a screencast of a real product (browser + terminal); `motigen init canvas <dir>`
+   for a drawn promo film; `motigen init dom <dir>` for plain HTML/CSS motion.
 2. **Write the script first.** `audio/lines.txt`: one line per voice cue, ≤ 55 words per line for a promo,
-   plain second person for a guide. Spell for the ear ("Keep Plain dot com"); add `"spellings"` to `motigen.json`
-   for the subtitles.
-3. **Guide:** edit `take.mjs` so it drives the real product (`Browser.open` with `map` for a local instance under
+   plain second person for a guide. Spell for the ear ("Acme Cloud dot dev"); add `"spellings"` to
+   `motigen.json` for the subtitles. The ElevenLabs key goes into `.env` (`ELEVENLABS_API_KEY=…`), the voice id
+   into `motigen.json` (`motigen vo voices` lists them).
+3. **Scenes:** edit `film.js`: one idea per scene, 3–5 s each, never two of the same kind in a row, the real
+   command in a `terminal` scene, the real screenshot in an `image` scene with a callout, one metric in a `stat`
+   scene, a `quote`, an `end` card with the address; `vo` per scene. See docs/scenes.md.
+   **Guide:** edit `take.mjs` so it drives the real product (`Browser.open` with `map` for a local instance under
    its real domain; `Term` for the shell), run `motigen record take.mjs`, then write `edit.js`: one shot per step,
    terminal bounds as text anchors, `chapter` per step, `keys` for Enter moments, `vo` cues per shot.
    **Canvas:** write `film.js` (`load`, `LAYOUTS` for both formats, `render(ctx, f)`, `mixSpec`); `VO_CUES` put the

@@ -22,10 +22,22 @@ export const ELEVENLABS = {
   settings: { stability: 0.6, similarity_boost: 0.75, style: 0, use_speaker_boost: true, speed: 1.0 },
 };
 
+const NO_KEY = 'ELEVENLABS_API_KEY is not set. Get a key at elevenlabs.io (profile → API keys) and put a line\n  ELEVENLABS_API_KEY=sk_…\ninto a file named .env in the project folder (next to motigen.json), or export it in your shell.';
+const NO_VOICE = 'no voice id: run `motigen vo voices` to list your voices, then put one into motigen.json: "vo": { "voice": "<id>" } (or pass --voice)';
+
+/** The voices of the account: [{ id, name, labels }]. */
+export async function listVoices({ apiKey = process.env.ELEVENLABS_API_KEY, fetchImpl = fetch } = {}) {
+  if (!apiKey) throw new Error(NO_KEY);
+  const r = await fetchImpl('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': apiKey } });
+  if (!r.ok) throw new Error(`ElevenLabs ${r.status}: ${(await r.text()).slice(0, 300)}`);
+  const { voices = [] } = await r.json();
+  return voices.map(v => ({ id: v.voice_id, name: v.name, labels: Object.values(v.labels || {}).join(', ') }));
+}
+
 /** One ElevenLabs text-to-speech call with timestamps for the whole script. Returns the parsed response. */
 export async function elevenlabs(text, { apiKey = process.env.ELEVENLABS_API_KEY, voice, model = ELEVENLABS.model, settings = ELEVENLABS.settings, seed, fetchImpl = fetch } = {}) {
-  if (!apiKey) throw new Error('ELEVENLABS_API_KEY is not set');
-  if (!voice) throw new Error('vo: give the voice id (--voice, or "vo": {"voice": …} in motigen.json)');
+  if (!apiKey) throw new Error(NO_KEY);
+  if (!voice) throw new Error(NO_VOICE);
   const r = await fetchImpl(`https://api.elevenlabs.io/v1/text-to-speech/${voice}/with-timestamps?output_format=pcm_48000`, {
     method: 'POST', headers: { 'xi-api-key': apiKey, 'content-type': 'application/json' },
     body: JSON.stringify({ text, model_id: model, voice_settings: settings, ...(seed != null ? { seed } : {}) }),

@@ -1,0 +1,14 @@
+{
+  "page": "film.html",
+  "fps": 30,
+  "size": [1920, 1080],
+  "audio": "audio",
+  "out": "out/hello-scenes.mp4",
+  "formats": {
+    "h": { "size": [1920, 1080], "query": "fmt=h", "out": "out/hello-scenes-16x9.mp4" },
+    "v": { "size": [1080, 1920], "query": "fmt=v", "out": "out/hello-scenes-9x16.mp4" }
+  },
+  "vo": { "voice": "", "model": "eleven_v4", "seed": 7042 },
+  "mix": { "voiceDb": -3, "duckDb": -9, "target": { "lufs": -14, "dbtp": -1 } },
+  "spellings": [["Acme Cloud dot dev", "acme.dev"]]
+}

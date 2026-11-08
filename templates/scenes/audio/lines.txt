@@ -1,0 +1,9 @@
+Introducing Acme Cloud. Ship faster, and sleep better.
+Every deploy today is fourteen steps, three tools, and one prayer.
+With Acme it is one command. Build, deploy, live.
+Twelve seconds from push to live. Zero config files. And uptime you can measure.
+This is your dashboard: live traffic, every deploy, every branch.
+A preview URL for every branch, rollback in one click, and secrets managed for you.
+Before: a forty-line runbook and two people on call. With Acme: one command, and you ship on Fridays.
+We deleted our deploy runbook the first week.
+Acme Cloud. Start free at Acme Cloud dot dev.

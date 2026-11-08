@@ -14,8 +14,16 @@ audio/
 
 ## Narration
 
-`motigen vo` reads `lines.txt`, sends the whole script to ElevenLabs in one `with-timestamps` call
-(`ELEVENLABS_API_KEY`; `"vo": { "voice", "model", "seed", "settings" }` in motigen.json or `--voice`, `--model`,
+Two things to set up once:
+
+1. **The key.** Create an API key at elevenlabs.io (profile → API keys) and put it into a file named `.env` in
+   the project folder, next to `motigen.json`: `ELEVENLABS_API_KEY=sk_…`. Every template ships `.env.example`
+   to copy; `.env` is git-ignored. A variable exported in the shell works too and wins over the file.
+2. **The voice.** `motigen vo voices` lists the voices of your account with their ids; put the one you want into
+   `motigen.json`: `"vo": { "voice": "<id>", "model": "eleven_v4", "seed": 7042 }` (or pass `--voice`).
+
+`motigen vo` then reads `lines.txt`, sends the whole script to ElevenLabs in one `with-timestamps` call
+(`"vo": { "voice", "model", "seed", "settings" }` in motigen.json or `--voice`, `--model`,
 `--seed`), saves the response as `audio/vo/resp.json` and splits it: each line is cut at the quietest point between
 it and the next (the alignment runs a little late), silence is trimmed, and `vo.json` records the duration, the
 text and the measured speech span of every line.
@@ -37,7 +45,8 @@ Spelling for the voice is not spelling for the screen: write "Acme Cloud dot com
 2. Effects: `click` at every logged click (`clickDb` −14), `key` at every key press (`keyDb` −27 with a seeded
    ±2.5 dB jitter), `enter` at every Enter badge (`enterDb` −18), plus `events.sfx` entries by id. Files come from
    `audio/sfx/<id>.wav` (or `sfx.json`'s `file`, placed so the transient at `hit` lands on the event); missing
-   click / key / enter are synthesised.
+   click / key / enter / whoosh / pop / tick are synthesised (the scenes template cues a `whoosh` on every
+   transition).
 3. Music: the bed, looped from `bedLoopFrom` (8 s) with a `bedCrossfade` (2 s) when the film is longer, faded out
    over `bedFadeOut` (3 s), levelled to `bedRmsDb` (−36 dB RMS), then ducked under the voice by `duckDb` (−9) with
    `duckAttack` 120 ms and `duckRelease` 450 ms.

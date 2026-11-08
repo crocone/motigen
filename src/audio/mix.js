@@ -55,12 +55,26 @@ function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 10139
 
 const norm = p => (p.peak() > 1e-6 ? p.scale(1 / p.peak()) : p);
 
-/** Procedural click / key / enter sounds for projects without recorded ones. */
+export const SYNTH = ['click', 'key', 'enter', 'whoosh', 'pop', 'tick'];
+/** Procedural sounds for projects without recorded ones: click / key / enter, a transition whoosh, a pop, a tick. */
 export function synthSfx(id, sr = SR) {
-  const r = rng(id === 'enter' ? 11 : id === 'key' ? 5 : 3);
-  const dur = id === 'enter' ? 0.09 : id === 'key' ? 0.05 : 0.06, n = Math.round(dur * sr), x = new Float32Array(n);
-  const f0 = id === 'enter' ? 1400 : id === 'key' ? 2600 : 3200, decay = id === 'enter' ? 40 : 90;
-  for (let i = 0; i < n; i++) { const t = i / sr; x[i] = (0.6 * Math.sin(2 * Math.PI * f0 * t) + 0.8 * (r() * 2 - 1)) * Math.exp(-decay * t); }
+  const r = rng({ enter: 11, key: 5, click: 3, whoosh: 17, pop: 23, tick: 29 }[id] || 1);
+  let dur, f;
+  if (id === 'whoosh') {
+    // filtered noise that rises then falls, 0.45 s: a one-pole low-pass whose cutoff sweeps 300 → 3200 → 400 Hz
+    dur = 0.45; const n = Math.round(dur * sr), x = new Float32Array(n); let y = 0;
+    for (let i = 0; i < n; i++) { const t = i / n, env = Math.sin(Math.PI * t) ** 1.6, cut = 300 + 2900 * Math.sin(Math.PI * Math.min(1, t * 1.25)); const a = 1 - Math.exp(-2 * Math.PI * cut / sr); y += (r() * 2 - 1 - y) * a; x[i] = y * env; }
+    return norm(new PCM([x], sr).toStereo());
+  }
+  if (id === 'pop') { dur = 0.12; f = t => Math.sin(2 * Math.PI * (520 - 320 * t / dur) * t) * Math.exp(-28 * t); }
+  else if (id === 'tick') { dur = 0.02; f = t => (r() * 2 - 1) * Math.exp(-400 * t); }
+  else {
+    const f0 = id === 'enter' ? 1400 : id === 'key' ? 2600 : 3200, decay = id === 'enter' ? 40 : 90;
+    dur = id === 'enter' ? 0.09 : id === 'key' ? 0.05 : 0.06;
+    f = t => (0.6 * Math.sin(2 * Math.PI * f0 * t) + 0.8 * (r() * 2 - 1)) * Math.exp(-decay * t);
+  }
+  const n = Math.round(dur * sr), x = new Float32Array(n);
+  for (let i = 0; i < n; i++) x[i] = f(i / sr);
   return norm(new PCM([x], sr).toStereo());
 }
 
@@ -98,7 +112,7 @@ export async function mix({ dir, events, out, cfg = {}, log = () => {}, ffmpeg =
     const f = meta.file ? join(dir, 'sfx', meta.file) : join(dir, 'sfx', `${id}.wav`);
     let entry = null;
     if (existsSync(f)) entry = { pcm: norm(await decode(f)), hit: meta.hit || 0 };
-    else if (['click', 'key', 'enter'].includes(id)) { entry = { pcm: synthSfx(id), hit: 0 }; if (!cache.has('__synth')) { log('sfx: no sfx/click.wav, key.wav, enter.wav: synthesised'); cache.set('__synth', 1); } }
+    else if (SYNTH.includes(id)) { entry = { pcm: synthSfx(id), hit: id === 'whoosh' ? 0.12 : 0 }; if (!cache.has('__synth')) { log(`sfx: no audio/sfx/${id}.wav: synthesised (${SYNTH.join(', ')} are built in)`); cache.set('__synth', 1); } }
     else report.missing.push(`sfx/${id}.wav`);
     cache.set(id, entry);
     return entry;
