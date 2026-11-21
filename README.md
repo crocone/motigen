@@ -224,6 +224,16 @@ films. Every port was checked against that pipeline's own output: the guide play
 same frames (SSIM 0.99 against the earlier render), the mix the same loudness and the same waveform within the
 random jitter of the key clicks, the subtitles the same file byte for byte, the canvas films the same frames.
 
+<!-- keepplain:repo -->
+## Built with AI
+
+[![Built with AI on KeepPlain](https://keepplain.com/embed/r/crocone/motigen.svg)](https://keepplain.com/r/crocone/motigen?utm_source=github&utm_medium=readme&utm_campaign=build)
+
+The coding-agent sessions behind this repository: the prompts, where the agent went wrong and what the human did about it.
+
+[View the sessions →](https://keepplain.com/r/crocone/motigen?utm_source=github&utm_medium=readme&utm_campaign=build)
+<!-- /keepplain:repo -->
+
 ## Releasing
 
 A release is a version bump and a tag: `npm version patch` (or `minor`), `git push --follow-tags`. The
