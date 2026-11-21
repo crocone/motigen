@@ -1,5 +1,11 @@
 # motigen
 
+[![npm](https://img.shields.io/npm/v/motigenjs?label=npm%20motigenjs&color=cb3837)](https://www.npmjs.com/package/motigenjs)
+[![ci](https://github.com/crocone/motigen/actions/workflows/ci.yml/badge.svg)](https://github.com/crocone/motigen/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/motigenjs)](LICENSE)
+
+<!-- preview: a short clip or GIF goes here -->
+
 Video as code, for developers and their coding agents.
 
 A web page is the film: it draws frame `t` on demand, in plain HTML, Canvas or anything else a browser runs.
