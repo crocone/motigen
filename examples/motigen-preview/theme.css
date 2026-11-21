@@ -1,0 +1,5 @@
+/* Your colours and type for the scenes player. The three themes live in /_motigen/scenes/scenes.css; override
+   what you like here, e.g. the accent of the dark theme: */
+.theme-dark {
+  /* --accent: #8b7cff; --accent2: #35d6e8; --accent3: #ff7a59; --bg: #0b0f1a; */
+}

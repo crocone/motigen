@@ -4,7 +4,7 @@
 [![ci](https://github.com/crocone/motigen/actions/workflows/ci.yml/badge.svg)](https://github.com/crocone/motigen/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/motigenjs)](LICENSE)
 
-<!-- preview: a short clip or GIF goes here -->
+![motigen in 30 seconds, made with motigen (examples/motigen-preview)](docs/img/motigen-preview.webp)
 
 Video as code, for developers and their coding agents.
 
@@ -142,7 +142,8 @@ export default {
 Fourteen scene kinds (title, text, list, stat, chart, table, phone, grid, image, terminal, code, quote, split,
 end), eight transitions that vary on their own, three themes, both formats from one list, and the voice, the
 transition sounds and the typed keys go into the mix. [docs/scenes.md](docs/scenes.md) has every field and the
-rules that keep a film from turning into a slideshow; `examples/scenes-gallery` shows every kind once.
+rules that keep a film from turning into a slideshow; `examples/scenes-gallery` shows every kind once, and
+`examples/motigen-preview` is the clip at the top of this page.
 
 ![The scenes template in its three themes](docs/img/scenes-paper.jpg)
 
