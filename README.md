@@ -6,6 +6,16 @@
 
 ![motigen in 30 seconds, made with motigen (examples/motigen-preview)](docs/img/motigen-preview.webp)
 
+<!-- keepplain:repo -->
+## Built with AI
+
+[![Built with AI on KeepPlain](https://keepplain.com/embed/r/crocone/motigen.svg)](https://keepplain.com/r/crocone/motigen?utm_source=github&utm_medium=readme&utm_campaign=build)
+
+The coding-agent sessions behind this repository: the prompts, where the agent went wrong and what the human did about it.
+
+[View the sessions →](https://keepplain.com/r/crocone/motigen?utm_source=github&utm_medium=readme&utm_campaign=build)
+<!-- /keepplain:repo -->
+
 Video as code, for developers and their coding agents.
 
 A web page is the film: it draws frame `t` on demand, in plain HTML, Canvas or anything else a browser runs.
@@ -223,16 +233,6 @@ The format and the tools were extracted from a pipeline that produced a real ser
 films. Every port was checked against that pipeline's own output: the guide player gives the same events and the
 same frames (SSIM 0.99 against the earlier render), the mix the same loudness and the same waveform within the
 random jitter of the key clicks, the subtitles the same file byte for byte, the canvas films the same frames.
-
-<!-- keepplain:repo -->
-## Built with AI
-
-[![Built with AI on KeepPlain](https://keepplain.com/embed/r/crocone/motigen.svg)](https://keepplain.com/r/crocone/motigen?utm_source=github&utm_medium=readme&utm_campaign=build)
-
-The coding-agent sessions behind this repository: the prompts, where the agent went wrong and what the human did about it.
-
-[View the sessions →](https://keepplain.com/r/crocone/motigen?utm_source=github&utm_medium=readme&utm_campaign=build)
-<!-- /keepplain:repo -->
 
 ## Releasing
 
